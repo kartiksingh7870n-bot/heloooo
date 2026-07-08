@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>❤️ Flutter — Dating App</title>
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <style>
         /* ─────────── RESET & BASE ─────────── */
-        *,
-        *::before,
-        *::after {
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -36,8 +38,6 @@
             -webkit-font-smoothing: antialiased;
             touch-action: manipulation;
         }
-
-        /* ─────────── APP CONTAINER ─────────── */
         .app {
             width: 100%;
             max-width: 430px;
@@ -60,7 +60,7 @@
             }
         }
 
-        /* ─────────── SPLASH / LOGIN ─────────── */
+        /* ─── LOGIN ─── */
         .login-overlay {
             position: absolute;
             inset: 0;
@@ -84,7 +84,6 @@
             width: 100%;
             max-width: 360px;
             text-align: center;
-            padding: 8px 0;
         }
         .login-box .logo-big {
             font-size: 52px;
@@ -205,7 +204,7 @@
             color: var(--text);
         }
 
-        /* ─────────── MAIN APP SHELL ─────────── */
+        /* ─── MAIN APP ─── */
         .app-main {
             display: flex;
             flex-direction: column;
@@ -219,7 +218,7 @@
             pointer-events: auto;
         }
 
-        /* ─────────── HEADER ─────────── */
+        /* ─── HEADER ─── */
         .header {
             padding: 14px 20px 6px;
             display: flex;
@@ -236,10 +235,6 @@
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-        .header .logo span {
-            color: var(--text);
-            -webkit-text-fill-color: var(--text);
         }
         .header-actions {
             display: flex;
@@ -284,7 +279,7 @@
             padding: 0 4px;
         }
 
-        /* ─────────── MAIN CONTENT ─────────── */
+        /* ─── MAIN CONTENT ─── */
         .main-content {
             flex: 1;
             position: relative;
@@ -397,7 +392,7 @@
             color: var(--primary);
         }
 
-        /* ─── AD BANNER (in swipe) ─── */
+        /* ─── AD BANNERS ─── */
         .ad-banner {
             flex-shrink: 0;
             background: linear-gradient(135deg, #f0ecf7, #e8e4f0);
@@ -789,7 +784,6 @@
         .search-box .clear-btn.visible {
             display: block;
         }
-
         .match-item {
             display: flex;
             align-items: center;
@@ -852,13 +846,6 @@
         }
         .match-item .chat-btn:hover {
             transform: scale(1.04);
-        }
-        .match-item .unread-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--primary);
-            flex-shrink: 0;
         }
         .no-matches {
             text-align: center;
@@ -1440,6 +1427,52 @@
             flex: 1;
             cursor: pointer;
         }
+        .story-ad {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 6;
+            font-size: 12px;
+        }
+        .story-ad .ad-cta {
+            background: var(--primary);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .swipe-ad-toast {
+            position: absolute;
+            bottom: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+        }
+        .swipe-ad-toast.show {
+            opacity: 1;
+        }
 
         /* ─── BOTTOM TAB ─── */
         .bottom-tab {
@@ -1625,13 +1658,20 @@
 
     <div class="app" id="app">
 
-        <!-- ─── LOGIN OVERLAY ─── -->
+        <!-- ─── LOGIN ─── -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="logo-big">❤️ Flutter</div>
                 <p class="sub">Find your perfect match</p>
-
                 <div id="loginForm">
+                    <div class="input-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="loginEmail" placeholder="your@email.com" value="demo@flutter.com" />
+                    </div>
+                    <div class="input-group">
+                        <label>🔒 Password</label>
+                        <input type="password" id="loginPassword" placeholder="Password" value="password123" />
+                    </div>
                     <div class="input-group">
                         <label>👤 Username</label>
                         <input type="text" id="loginUsername" placeholder="Choose a username" value="alex" />
@@ -1652,12 +1692,12 @@
                         <label>📝 Bio</label>
                         <input type="text" id="loginBio" placeholder="Tell us about yourself" value="Adventurer & coffee lover ☕" />
                     </div>
-                    <button class="btn-primary" id="loginBtn">✨ Create Account & Start</button>
+                    <button class="btn-primary" id="loginBtn">✨ Create Account / Login</button>
                     <div class="error-msg" id="loginError"></div>
                     <div class="divider">or</div>
-                    <button class="btn-secondary" id="demoLoginBtn">🔑 Continue as Guest (Demo)</button>
+                    <button class="btn-secondary" id="demoLoginBtn">🔑 Login as Guest (Demo)</button>
                     <div class="demo-hint">
-                        💡 <strong>Demo:</strong> Create any account or use guest mode. All data stored locally in your browser.
+                        💡 <strong>Real-time with Firebase:</strong> Create your account, share this link, and chat with anyone!
                     </div>
                 </div>
             </div>
@@ -1670,11 +1710,12 @@
             <header class="header">
                 <div class="logo">❤️ Flutter</div>
                 <div class="header-actions">
-                    <button id="resetBtn" title="Reset Data">🔄</button>
+                    <button id="resetBtn" title="Reset Data (local)">🔄</button>
                     <button id="notifBtn" title="Notifications">
                         🔔
                         <span class="badge" id="notifBadge" style="display:none;">0</span>
                     </button>
+                    <button id="logoutBtn" title="Logout" style="font-size:18px;">🚪</button>
                 </div>
             </header>
 
@@ -1686,7 +1727,6 @@
                     <div class="stories-wrapper">
                         <div class="stories-row" id="storiesRow"></div>
                     </div>
-                    <!-- Ad Banner -->
                     <div class="ad-banner" id="adBannerSwipe">
                         <span class="ad-icon">💎</span>
                         <span class="ad-text"><strong>Premium</strong> — See who liked you</span>
@@ -1695,6 +1735,7 @@
                     </div>
                     <div class="card-stack-wrap">
                         <div class="card-stack" id="cardStack"></div>
+                        <div class="swipe-ad-toast" id="swipeAdToast">📢 Sponsored: Try Flutter Premium!</div>
                     </div>
                     <div class="actions">
                         <button class="btn-nope" id="btnNope" aria-label="Pass">✖</button>
@@ -1703,24 +1744,20 @@
                     </div>
                 </div>
 
-                <!-- MATCHES VIEW (with search) -->
+                <!-- MATCHES VIEW -->
                 <div class="view matches-view" id="matchesView">
                     <div class="section-title">💬 Matches <span id="matchCountBadge">0</span></div>
-                    <!-- Search box -->
                     <div class="search-box" id="searchBox">
                         <span class="icon">🔍</span>
                         <input type="text" id="searchInput" placeholder="Search by username..." />
                         <button class="clear-btn" id="clearSearch">✕</button>
                     </div>
-                    <!-- Ad -->
                     <div class="ad-match" id="adMatch">
                         <span class="ad-icon">📱</span>
                         <span class="ad-text">Get <strong>Flutter Premium</strong> — unlimited likes &amp; rewinds</span>
                         <button class="ad-cta">Learn More</button>
                     </div>
-                    <!-- Matches list -->
                     <div id="matchesList"></div>
-                    <!-- Search results -->
                     <div class="search-results" id="searchResults"></div>
                 </div>
 
@@ -1737,10 +1774,15 @@
                         </div>
                     </div>
                     <div class="chat-messages" id="chatMessages"></div>
-                    <div class="chat-ad" id="chatAd">
+                    <div class="chat-ad" id="chatAd1">
                         <span class="ad-icon">💬</span>
                         <span>Send GIFs &amp; voice notes with <strong>Flutter+</strong></span>
                         <button class="ad-cta">Try</button>
+                    </div>
+                    <div class="chat-ad" id="chatAd2" style="display:none;">
+                        <span class="ad-icon">🎁</span>
+                        <span>Get 50% off on <strong>Premium</strong> this week!</span>
+                        <button class="ad-cta">Claim</button>
                     </div>
                     <div class="chat-input">
                         <input type="text" id="chatInput" placeholder="Type a message..." />
@@ -1796,6 +1838,10 @@
                         </div>
                         <img id="storyImage" src="" alt="Story" />
                         <div class="story-caption" id="storyCaption">Caption</div>
+                        <div class="story-ad" id="storyAd">
+                            <span>📸 Sponsored: Share your story with Flutter+</span>
+                            <button class="ad-cta">Learn More</button>
+                        </div>
                         <div class="story-touch-area">
                             <div class="half left" id="storyPrev"></div>
                             <div class="half right" id="storyNext"></div>
@@ -1833,198 +1879,33 @@
 
     <script>
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  DATA — Built-in users (for demo / matching)
+        //  🔥 FIREBASE CONFIG (आपकी दी गई)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        const BUILTIN_USERS = [{
-            id: 101,
-            name: 'Priya Sharma',
-            username: 'priya_sharma',
-            age: 24,
-            location: 'Mumbai, India',
-            bio: '🌏 Travel junkie | ☕ Coffee addict | 📸 Capturing moments. Let\'s explore the world together!',
-            interests: ['Travel', 'Photography', 'Coffee'],
-            image: 'https://i.pravatar.cc/400?img=1',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=11', caption: 'Exploring the mountains 🏔️' },
-                { image: 'https://picsum.photos/400/800?random=12', caption: 'Coffee time ☕' },
-            ]
-        }, {
-            id: 102,
-            name: 'Arjun Reddy',
-            username: 'arjun_reddy',
-            age: 27,
-            location: 'Bangalore, India',
-            bio: '🚀 Tech enthusiast & startup founder. Love hiking, gaming, and late-night coding.',
-            interests: ['Tech', 'Hiking', 'Gaming'],
-            image: 'https://i.pravatar.cc/400?img=11',
-            online: false,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=21', caption: 'Coding till dawn 💻' },
-            ]
-        }, {
-            id: 103,
-            name: 'Sneha Patel',
-            username: 'sneha_patel',
-            age: 23,
-            location: 'Delhi, India',
-            bio: '🎭 Theatre actor & dancer. Living life one performance at a time. 😊',
-            interests: ['Dance', 'Theatre', 'Music'],
-            image: 'https://i.pravatar.cc/400?img=5',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=31', caption: 'Rehearsal mode 🎭' },
-                { image: 'https://picsum.photos/400/800?random=32', caption: 'Dance practice 💃' },
-            ]
-        }, {
-            id: 104,
-            name: 'Vikram Singh',
-            username: 'vikram_singh',
-            age: 29,
-            location: 'Hyderabad, India',
-            bio: '🏏 Cricket fan | 📚 Bookworm | 🍕 Pizza lover. Looking for my partner in crime.',
-            interests: ['Cricket', 'Reading', 'Food'],
-            image: 'https://i.pravatar.cc/400?img=12',
-            online: false,
-            stories: []
-        }, {
-            id: 105,
-            name: 'Ananya Iyer',
-            username: 'ananya_iyer',
-            age: 25,
-            location: 'Chennai, India',
-            bio: '🎨 Artist & designer. Finding beauty in the little things. Let\'s create together.',
-            interests: ['Art', 'Design', 'Nature'],
-            image: 'https://i.pravatar.cc/400?img=9',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=51', caption: 'Art in progress 🎨' },
-            ]
-        }, {
-            id: 106,
-            name: 'Rohit Mehta',
-            username: 'rohit_mehta',
-            age: 26,
-            location: 'Pune, India',
-            bio: '🏋️ Fitness freak | 🎸 Guitar player | 🌱 Plant dad. Good vibes only!',
-            interests: ['Fitness', 'Music', 'Plants'],
-            image: 'https://i.pravatar.cc/400?img=7',
-            online: false,
-            stories: []
-        }, {
-            id: 107,
-            name: 'Kavya Nair',
-            username: 'kavya_nair',
-            age: 22,
-            location: 'Kochi, India',
-            bio: '🌊 Beach lover | 📝 Writer | 🧘‍♀️ Yoga. Deep conversations & laughter.',
-            interests: ['Writing', 'Yoga', 'Beach'],
-            image: 'https://i.pravatar.cc/400?img=10',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=71', caption: 'Sunset at the beach 🌅' },
-                { image: 'https://picsum.photos/400/800?random=72', caption: 'Writing my new poem 📝' },
-            ]
-        }, {
-            id: 108,
-            name: 'Amit Kumar',
-            username: 'amit_kumar',
-            age: 28,
-            location: 'Jaipur, India',
-            bio: '🏛️ History buff | 🍛 Food explorer | 📷 Street photographer. Wander & wonder.',
-            interests: ['History', 'Food', 'Photography'],
-            image: 'https://i.pravatar.cc/400?img=20',
-            online: false,
-            stories: []
-        }, {
-            id: 109,
-            name: 'Riya Das',
-            username: 'riya_das',
-            age: 24,
-            location: 'Kolkata, India',
-            bio: '🎶 Music is my religion | 📖 Poetry | ☕ Chai over everything.',
-            interests: ['Music', 'Poetry', 'Chai'],
-            image: 'https://i.pravatar.cc/400?img=25',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=91', caption: 'Chai time with my guitar 🎸' },
-            ]
-        }, {
-            id: 110,
-            name: 'Dev Patel',
-            username: 'dev_patel',
-            age: 26,
-            location: 'Ahmedabad, India',
-            bio: '🚴‍♂️ Cyclist | 💻 Developer | 🎮 Gamer. Balancing screens & pedals.',
-            interests: ['Cycling', 'Coding', 'Gaming'],
-            image: 'https://i.pravatar.cc/400?img=33',
-            online: false,
-            stories: []
-        }, {
-            id: 111,
-            name: 'Maya Krishnan',
-            username: 'maya_krishnan',
-            age: 25,
-            location: 'Coimbatore, India',
-            bio: '🌿 Nature lover | 🧁 Baker | 📸 Nature photographer. Sweetness & serenity.',
-            interests: ['Nature', 'Baking', 'Photography'],
-            image: 'https://i.pravatar.cc/400?img=45',
-            online: true,
-            stories: [
-                { image: 'https://picsum.photos/400/800?random=111', caption: 'Freshly baked cookies 🍪' },
-                { image: 'https://picsum.photos/400/800?random=112', caption: 'Nature walk 🌿' },
-            ]
-        }, {
-            id: 112,
-            name: 'Kabir Singh',
-            username: 'kabir_singh',
-            age: 27,
-            location: 'Lucknow, India',
-            bio: '🎭 Stand-up comedy | 📝 Writer | 🍜 Foodie. Making the world laugh.',
-            interests: ['Comedy', 'Writing', 'Food'],
-            image: 'https://i.pravatar.cc/400?img=60',
-            online: false,
-            stories: []
-        }];
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHXEhYbhjVOenc0CbK09_O3zPZTyeNgN4",
+            authDomain: "fillings-app.firebaseapp.com",
+            projectId: "fillings-app",
+            storageBucket: "fillings-app.firebasestorage.app",
+            messagingSenderId: "161991922479",
+            appId: "1:161991922479:web:494ef906e9de89f64287da",
+            measurementId: "G-2FFV726ZXW"
+        };
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  STORAGE HELPERS
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        const STORAGE_KEY = 'flutter_app_data';
-
-        function loadData() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) return JSON.parse(raw);
-            } catch (_) { /* ignore */ }
-            return null;
-        }
-
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        function getDefaultData() {
-            return {
-                users: BUILTIN_USERS.map(u => ({ ...u })),
-                currentUser: null,
-                matches: [], // array of user ids
-                liked: [], // user ids liked by current user
-                passed: [], // user ids passed
-                chatMessages: {}, // { userId: [ {text, fromMe, time} ] }
-                storyViews: {}, // { userId: true } for viewed stories
-                profileViews: 0,
-            };
-        }
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  STATE
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        let appData = loadData() || getDefaultData();
-        let currentUser = appData.currentUser ? appData.users.find(u => u.id === appData.currentUser) : null;
+        let currentUser = null;
+        let currentUserData = null;
+        let matches = [];
+        let chatMessages = {};
+        let allUsers = [];
+        let unsubscribeChat = null;
         let state = {
             currentIndex: 0,
             isAnimating: false,
@@ -2035,8 +1916,8 @@
             storyUser: null,
             storyIndex: 0,
             storyTimer: null,
-            isTyping: false,
             searchQuery: '',
+            messageCount: 0,
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2048,6 +1929,8 @@
 
         const loginOverlay = $('#loginOverlay');
         const appMain = $('#appMain');
+        const loginEmail = $('#loginEmail');
+        const loginPassword = $('#loginPassword');
         const loginUsername = $('#loginUsername');
         const loginDisplayName = $('#loginDisplayName');
         const loginAge = $('#loginAge');
@@ -2056,6 +1939,7 @@
         const loginBtn = $('#loginBtn');
         const demoLoginBtn = $('#demoLoginBtn');
         const loginError = $('#loginError');
+        const logoutBtn = $('#logoutBtn');
 
         const cardStack = $('#cardStack');
         const swipeView = $('#swipeView');
@@ -2082,9 +1966,10 @@
         const resetBtn = $('#resetBtn');
         const notifBtn = $('#notifBtn');
         const toast = $('#toast');
+        const swipeAdToast = $('#swipeAdToast');
         let toastTimer = null;
+        let swipeAdTimer = null;
 
-        // chat
         const chatBack = $('#chatBack');
         const chatAvatar = $('#chatAvatar');
         const chatName = $('#chatName');
@@ -2092,8 +1977,9 @@
         const chatMessagesEl = $('#chatMessages');
         const chatInput = $('#chatInput');
         const chatSend = $('#chatSend');
+        const chatAd1 = $('#chatAd1');
+        const chatAd2 = $('#chatAd2');
 
-        // profile
         const profileCover = $('#profileCover');
         const profileName = $('#profileName');
         const profileAgeLocation = $('#profileAgeLocation');
@@ -2104,7 +1990,6 @@
         const statMatches = $('#statMatches');
         const statViews = $('#statViews');
 
-        // stories
         const storiesRow = $('#storiesRow');
         const storyViewer = $('#storyViewer');
         const storyClose = $('#storyClose');
@@ -2115,11 +2000,10 @@
         const storyCaption = $('#storyCaption');
         const storyPrev = $('#storyPrev');
         const storyNext = $('#storyNext');
+        const storyAd = $('#storyAd');
 
-        // ads
         const adBannerSwipe = $('#adBannerSwipe');
         const adMatch = $('#adMatch');
-        const chatAd = $('#chatAd');
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  TOAST
@@ -2134,113 +2018,233 @@
             }, duration);
         }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTH / LOGIN
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        function createUser(username, displayName, age, location, bio) {
-            const id = Date.now() + Math.floor(Math.random() * 1000);
-            const newUser = {
-                id,
-                name: displayName || username,
-                username: username,
-                age: parseInt(age) || 22,
-                location: location || 'Unknown',
-                bio: bio || 'Just here to meet new people! 😊',
-                interests: ['Travel', 'Music', 'Food'],
-                image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
-                online: true,
-                stories: [],
-                createdAt: new Date().toISOString(),
-            };
-            appData.users.push(newUser);
-            appData.currentUser = id;
-            appData.liked = [];
-            appData.passed = [];
-            appData.matches = [];
-            appData.chatMessages = {};
-            appData.storyViews = {};
-            appData.profileViews = 0;
-            saveData(appData);
-            currentUser = newUser;
-            return newUser;
+        function showSwipeAd() {
+            swipeAdToast.classList.add('show');
+            if (swipeAdTimer) clearTimeout(swipeAdTimer);
+            swipeAdTimer = setTimeout(() => {
+                swipeAdToast.classList.remove('show');
+            }, 1500);
         }
 
-        function loginUser(userId) {
-            const user = appData.users.find(u => u.id === userId);
-            if (!user) return false;
-            appData.currentUser = userId;
-            appData.liked = [];
-            appData.passed = [];
-            saveData(appData);
-            currentUser = user;
-            return true;
-        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  FIREBASE AUTH
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        loginBtn.addEventListener('click', () => {
-            const username = loginUsername.value.trim();
-            const displayName = loginDisplayName.value.trim();
-            const age = loginAge.value.trim();
-            const location = loginLocation.value.trim();
-            const bio = loginBio.value.trim();
-
-            loginError.textContent = '';
-
-            if (!username) { loginError.textContent = 'Please enter a username.'; return; }
-            if (!displayName) { loginError.textContent = 'Please enter your display name.'; return; }
-            if (!age || isNaN(parseInt(age)) || parseInt(age) < 18) { loginError.textContent =
-                    'Please enter a valid age (18+).'; return; }
-            if (!location) { loginError.textContent = 'Please enter your location.'; return; }
-            if (!bio) { loginError.textContent = 'Please enter a short bio.'; return; }
-
-            const existing = appData.users.find(u => u.username === username);
-            if (existing) {
-                if (loginUser(existing.id)) {
-                    loginError.textContent = '';
-                    initApp();
-                    console.log('Logged in as existing user:', existing.name);
-                } else {
-                    loginError.textContent = 'Could not login. Please try again.';
+        async function signUpOrLogin(email, password, username, displayName, age, location, bio) {
+            try {
+                let userCred = null;
+                try {
+                    userCred = await auth.signInWithEmailAndPassword(email, password);
+                } catch (e) {
+                    if (e.code === 'auth/user-not-found') {
+                        userCred = await auth.createUserWithEmailAndPassword(email, password);
+                    } else {
+                        throw e;
+                    }
                 }
-                return;
-            }
 
-            const user = createUser(username, displayName, age, location, bio);
-            loginError.textContent = '';
-            initApp();
-            console.log('New user created:', user.name);
-        });
-
-        demoLoginBtn.addEventListener('click', () => {
-            let demoUser = appData.users.find(u => u.username === 'guest_demo');
-            if (!demoUser) {
-                demoUser = createUser('guest_demo', 'Guest User', 25, 'San Francisco, CA', 'Just exploring! 🌟');
-                demoUser.image = `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`;
-                saveData(appData);
+                const user = userCred.user;
+                const docRef = db.collection('users').doc(user.uid);
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    await docRef.set({
+                        email: email,
+                        username: username,
+                        name: displayName || username,
+                        age: parseInt(age) || 22,
+                        location: location || 'Unknown',
+                        bio: bio || 'Just here to meet new people! 😊',
+                        interests: ['Travel', 'Music', 'Food'],
+                        image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
+                        online: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    });
+                }
+                return user;
+            } catch (error) {
+                console.error('Auth error:', error);
+                throw error;
             }
-            if (loginUser(demoUser.id)) {
-                loginError.textContent = '';
-                initApp();
-                console.log('Guest login:', demoUser.name);
-            }
-        });
-
-        document.querySelectorAll('#loginForm input').forEach(inp => {
-            inp.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') loginBtn.click();
-            });
-        });
+        }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  HELPERS
+        //  LOAD DATA
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        async function loadUserData(uid) {
+            const doc = await db.collection('users').doc(uid).get();
+            if (doc.exists) {
+                return { id: uid, ...doc.data() };
+            }
+            return null;
+        }
+
+        async function loadAllUsers() {
+            const snapshot = await db.collection('users').get();
+            allUsers = [];
+            snapshot.forEach(doc => {
+                allUsers.push({ id: doc.id, ...doc.data() });
+            });
+        }
+
+        async function loadMatches() {
+            if (!currentUser) return;
+            const snapshot = await db.collection('matches')
+                .where('users', 'array-contains', currentUser.uid)
+                .get();
+            const matchIds = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const other = data.users.find(id => id !== currentUser.uid);
+                if (other) matchIds.push(other);
+            });
+            matches = matchIds;
+            updateBadges();
+            renderMatches();
+        }
+
+        async function addMatch(otherUserId) {
+            if (!currentUser || !otherUserId) return;
+            const matchRef = db.collection('matches').doc();
+            await matchRef.set({
+                users: [currentUser.uid, otherUserId],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            if (!matches.includes(otherUserId)) {
+                matches.push(otherUserId);
+                updateBadges();
+                renderMatches();
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  CHAT
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function listenToChat(otherUserId) {
+            if (unsubscribeChat) {
+                unsubscribeChat();
+                unsubscribeChat = null;
+            }
+            if (!currentUser || !otherUserId) return;
+            const chatId = [currentUser.uid, otherUserId].sort().join('_');
+            const chatRef = db.collection('chats').doc(chatId);
+            const messagesRef = chatRef.collection('messages').orderBy('timestamp', 'asc');
+            unsubscribeChat = messagesRef.onSnapshot((snapshot) => {
+                const msgs = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    msgs.push({
+                        id: doc.id,
+                        text: data.text,
+                        fromMe: data.senderId === currentUser.uid,
+                        time: data.timestamp ? data.timestamp.toDate() : new Date(),
+                    });
+                });
+                chatMessages[otherUserId] = msgs;
+                if (state.selectedChatId === otherUserId) {
+                    const user = allUsers.find(u => u.id === otherUserId);
+                    if (user) renderChat(user);
+                }
+            }, (error) => {
+                console.error('Chat listener error:', error);
+            });
+        }
+
+        async function sendMessage(otherUserId, text) {
+            if (!currentUser || !otherUserId || !text.trim()) return;
+            const chatId = [currentUser.uid, otherUserId].sort().join('_');
+            const chatRef = db.collection('chats').doc(chatId);
+            const messagesRef = chatRef.collection('messages');
+            await chatRef.set({ users: [currentUser.uid, otherUserId] }, { merge: true });
+            await messagesRef.add({
+                text: text.trim(),
+                senderId: currentUser.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            if (!matches.includes(otherUserId)) {
+                await addMatch(otherUserId);
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  SWIPE LOGIC
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        async function likeUser(user) {
+            if (state.isAnimating || !currentUser) return;
+            state.isAnimating = true;
+
+            const card = state.currentCardEl;
+            if (card) {
+                const likeInd = card.querySelector('.like-indicator');
+                likeInd.classList.add('show');
+                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
+                card.style.transform = 'translate(120%, -40px) rotate(20deg)';
+                card.style.opacity = '0';
+            }
+
+            await db.collection('likes').add({
+                from: currentUser.uid,
+                to: user.id,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await db.collection('likes')
+                .where('from', '==', user.id)
+                .where('to', '==', currentUser.uid)
+                .get();
+
+            if (!snapshot.empty) {
+                await addMatch(user.id);
+                setTimeout(() => {
+                    showMatchPopup(user);
+                    state.isAnimating = false;
+                }, 450);
+            } else {
+                setTimeout(() => {
+                    state.isAnimating = false;
+                    renderStack();
+                    showSwipeAd();
+                }, 450);
+            }
+        }
+
+        async function passUser(user) {
+            if (state.isAnimating || !currentUser) return;
+            state.isAnimating = true;
+
+            const card = state.currentCardEl;
+            if (card) {
+                const nopeInd = card.querySelector('.nope-indicator');
+                nopeInd.classList.add('show');
+                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
+                card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
+                card.style.opacity = '0';
+            }
+
+            await db.collection('passes').add({
+                from: currentUser.uid,
+                to: user.id,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            setTimeout(() => {
+                state.isAnimating = false;
+                renderStack();
+                showSwipeAd();
+            }, 450);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  RENDER CARDS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function getAvailableUsers() {
             if (!currentUser) return [];
-            return appData.users.filter(u =>
-                u.id !== currentUser.id &&
-                !appData.liked.includes(u.id) &&
-                !appData.passed.includes(u.id)
+            return allUsers.filter(u =>
+                u.id !== currentUser.uid &&
+                !matches.includes(u.id)
             );
         }
 
@@ -2253,80 +2257,6 @@
             return available[0];
         }
 
-        function getMatchCount() {
-            return appData.matches.length;
-        }
-
-        function updateBadges() {
-            const count = getMatchCount();
-            if (count > 0) {
-                notifBadge.textContent = count;
-                notifBadge.style.display = 'flex';
-                matchTabBadge.textContent = count;
-                matchTabBadge.style.display = 'flex';
-                matchCountBadge.textContent = count;
-            } else {
-                notifBadge.style.display = 'none';
-                matchTabBadge.style.display = 'none';
-                matchCountBadge.textContent = '0';
-            }
-        }
-
-        // ─── SEARCH ───
-        function performSearch(query) {
-            state.searchQuery = query.trim().toLowerCase();
-            const results = appData.users.filter(u =>
-                u.id !== currentUser.id &&
-                (u.username.toLowerCase().includes(state.searchQuery) ||
-                    u.name.toLowerCase().includes(state.searchQuery))
-            );
-            renderSearchResults(results);
-            clearSearch.classList.toggle('visible', state.searchQuery.length > 0);
-        }
-
-        function renderSearchResults(results) {
-            if (results.length === 0 || state.searchQuery === '') {
-                searchResults.innerHTML = '';
-                return;
-            }
-            searchResults.innerHTML = results.map(u => `
-            <div class="match-item" data-userid="${u.id}">
-              <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
-              <div class="info">
-                <h4>${u.name}</h4>
-                <p>@${u.username} · ${u.age} · ${u.location.split(',')[0]}</p>
-              </div>
-              <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
-            </div>
-          `).join('');
-
-            searchResults.querySelectorAll('.match-item').forEach(el => {
-                const uid = parseInt(el.dataset.userid);
-                el.addEventListener('click', () => openChat(uid));
-                const btn = el.querySelector('.chat-btn');
-                if (btn) {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openChat(uid);
-                    });
-                }
-            });
-        }
-
-        searchInput.addEventListener('input', (e) => {
-            performSearch(e.target.value);
-        });
-
-        clearSearch.addEventListener('click', () => {
-            searchInput.value = '';
-            performSearch('');
-            searchInput.focus();
-        });
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  RENDER CARDS
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         function renderCard(user) {
             if (!user) return null;
             const card = document.createElement('div');
@@ -2335,13 +2265,13 @@
 
             const img = document.createElement('img');
             img.className = 'card-img';
-            img.src = user.image;
+            img.src = user.image || 'https://i.pravatar.cc/400?img=1';
             img.alt = user.name;
             img.loading = 'lazy';
             img.onerror = () => { img.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect fill="%23e8e8ea" width="400" height="400"/%3E%3Ctext x="200" y="200" font-size="40" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
 
-            if (user.online) {
+            if (user.online !== false) {
                 const badge = document.createElement('div');
                 badge.className = 'online-badge';
                 badge.textContent = 'Online';
@@ -2383,8 +2313,8 @@
               <div class="empty-state">
                 <div class="icon">🎉</div>
                 <h3>You've seen everyone!</h3>
-                <p>You liked ${appData.liked.length} people and matched with ${appData.matches.length}.</p>
-                <button onclick="resetApp()">🔄 Start Over</button>
+                <p>You have ${matches.length} matches.</p>
+                <button onclick="location.reload()">🔄 Refresh</button>
               </div>
             `;
                 return;
@@ -2401,7 +2331,7 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CARD DRAG (unchanged)
+        //  CARD DRAG
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function setupCardDrag(card, user) {
@@ -2457,9 +2387,9 @@
                 const threshold = 100;
                 if (Math.abs(currentX) > threshold) {
                     if (currentX > 0) {
-                        likeUser(user, card);
+                        likeUser(user);
                     } else {
-                        passUser(user, card);
+                        passUser(user);
                     }
                 } else {
                     card.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
@@ -2490,83 +2420,12 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  LIKE / PASS (unchanged)
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        function likeUser(user, cardEl) {
-            if (state.isAnimating || !currentUser) return;
-            state.isAnimating = true;
-
-            const card = cardEl || state.currentCardEl;
-            if (card) {
-                const likeInd = card.querySelector('.like-indicator');
-                likeInd.classList.add('show');
-                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
-                card.style.transform = 'translate(120%, -40px) rotate(20deg)';
-                card.style.opacity = '0';
-            }
-
-            if (!appData.liked.includes(user.id)) {
-                appData.liked.push(user.id);
-            }
-
-            const willMatch = Math.random() < 0.30 || [101, 103, 105, 107, 109, 111].includes(user.id);
-            if (willMatch && !appData.matches.includes(user.id)) {
-                appData.matches.push(user.id);
-                if (!appData.chatMessages[user.id]) {
-                    appData.chatMessages[user.id] = [
-                        { text: `Hey ${user.name}! It's a match! 😍`, fromMe: true, time: new Date().toISOString() },
-                        { text: `Hi! So glad we matched! How are you?`, fromMe: false, time: new Date().toISOString() },
-                    ];
-                }
-                saveData(appData);
-                updateBadges();
-                setTimeout(() => {
-                    showMatchPopup(user);
-                    state.isAnimating = false;
-                }, 450);
-            } else {
-                saveData(appData);
-                updateBadges();
-                setTimeout(() => {
-                    state.isAnimating = false;
-                    renderStack();
-                }, 450);
-            }
-        }
-
-        function passUser(user, cardEl) {
-            if (state.isAnimating || !currentUser) return;
-            state.isAnimating = true;
-
-            const card = cardEl || state.currentCardEl;
-            if (card) {
-                const nopeInd = card.querySelector('.nope-indicator');
-                nopeInd.classList.add('show');
-                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
-                card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
-                card.style.opacity = '0';
-            }
-
-            if (!appData.passed.includes(user.id)) {
-                appData.passed.push(user.id);
-            }
-            saveData(appData);
-            updateBadges();
-
-            setTimeout(() => {
-                state.isAnimating = false;
-                renderStack();
-            }, 450);
-        }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  MATCH POPUP (unchanged)
+        //  MATCH POPUP
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function showMatchPopup(user) {
             matchName.textContent = user.name;
-            matchMyImg.src = currentUser.image;
+            matchMyImg.src = currentUserData?.image || 'https://i.pravatar.cc/100?img=70';
             matchMyImg.onerror = () => { matchMyImg.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23e8e8ea" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="30" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             matchOtherImg.src = user.image;
@@ -2601,12 +2460,12 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  MATCHES LIST (with search integrated)
+        //  MATCHES LIST
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderMatches() {
             if (!currentUser) return;
-            const matchUsers = appData.matches.map(id => appData.users.find(u => u.id === id)).filter(Boolean);
+            const matchUsers = matches.map(id => allUsers.find(u => u.id === id)).filter(Boolean);
 
             if (matchUsers.length === 0) {
                 matchesList.innerHTML = `
@@ -2617,7 +2476,7 @@
             `;
             } else {
                 matchesList.innerHTML = matchUsers.map(u => {
-                    const msgs = appData.chatMessages[u.id] || [];
+                    const msgs = chatMessages[u.id] || [];
                     const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text : 'Start chatting!';
                     const isFromMe = msgs.length > 0 && msgs[msgs.length - 1].fromMe;
                     const preview = (isFromMe ? 'You: ' : '') + lastMsg;
@@ -2635,9 +2494,65 @@
                 }).join('');
             }
 
-            // Attach click events for matches
             matchesList.querySelectorAll('.match-item').forEach(el => {
-                const uid = parseInt(el.dataset.userid);
+                const uid = el.dataset.userid;
+                el.addEventListener('click', () => openChat(uid));
+                const btn = el.querySelector('.chat-btn');
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openChat(uid);
+                    });
+                }
+            });
+            updateBadges();
+        }
+
+        function updateBadges() {
+            const count = matches.length;
+            if (count > 0) {
+                notifBadge.textContent = count;
+                notifBadge.style.display = 'flex';
+                matchTabBadge.textContent = count;
+                matchTabBadge.style.display = 'flex';
+                matchCountBadge.textContent = count;
+            } else {
+                notifBadge.style.display = 'none';
+                matchTabBadge.style.display = 'none';
+                matchCountBadge.textContent = '0';
+            }
+        }
+
+        // ─── SEARCH ───
+        function performSearch(query) {
+            state.searchQuery = query.trim().toLowerCase();
+            const results = allUsers.filter(u =>
+                u.id !== currentUser?.uid &&
+                (u.username?.toLowerCase().includes(state.searchQuery) ||
+                    u.name?.toLowerCase().includes(state.searchQuery))
+            );
+            renderSearchResults(results);
+            clearSearch.classList.toggle('visible', state.searchQuery.length > 0);
+        }
+
+        function renderSearchResults(results) {
+            if (results.length === 0 || state.searchQuery === '') {
+                searchResults.innerHTML = '';
+                return;
+            }
+            searchResults.innerHTML = results.map(u => `
+            <div class="match-item" data-userid="${u.id}">
+              <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
+              <div class="info">
+                <h4>${u.name}</h4>
+                <p>@${u.username} · ${u.age} · ${u.location.split(',')[0]}</p>
+              </div>
+              <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
+            </div>
+          `).join('');
+
+            searchResults.querySelectorAll('.match-item').forEach(el => {
+                const uid = el.dataset.userid;
                 el.addEventListener('click', () => openChat(uid));
                 const btn = el.querySelector('.chat-btn');
                 if (btn) {
@@ -2649,111 +2564,89 @@
             });
         }
 
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            performSearch('');
+            searchInput.focus();
+        });
+
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CHAT (with non-match support)
+        //  CHAT OPEN
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function openChat(userId) {
-            const user = appData.users.find(u => u.id === userId);
+            const user = allUsers.find(u => u.id === userId);
             if (!user || !currentUser) return;
-            // If not a match, add to matches for convenience
-            if (!appData.matches.includes(userId)) {
-                appData.matches.push(userId);
-                saveData(appData);
-                updateBadges();
-                renderMatches();
+            if (!matches.includes(userId)) {
+                addMatch(userId);
             }
             state.selectedChatId = userId;
-            if (!appData.chatMessages[userId]) {
-                appData.chatMessages[userId] = [
-                    { text: `Hi! Let's chat 😊`, fromMe: false, time: new Date().toISOString() },
-                ];
-                saveData(appData);
+            state.messageCount = 0;
+            if (!chatMessages[userId]) {
+                chatMessages[userId] = [];
             }
+            listenToChat(userId);
             renderChat(user);
             switchView('chat');
         }
 
         function renderChat(user) {
-            chatAvatar.src = user.image;
+            chatAvatar.src = user.image || 'https://i.pravatar.cc/40?img=1';
             chatAvatar.onerror = () => { chatAvatar.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Crect fill="%23e8e8ea" width="40" height="40"/%3E%3Ctext x="20" y="20" font-size="18" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             chatName.textContent = user.name;
-            chatStatus.textContent = user.online ? '🟢 Online' : '⚪ Offline';
-            chatStatus.className = 'status' + (user.online ? ' online' : '');
+            chatStatus.textContent = user.online !== false ? '🟢 Online' : '⚪ Offline';
+            chatStatus.className = 'status' + (user.online !== false ? ' online' : '');
 
-            const msgs = appData.chatMessages[user.id] || [];
+            const msgs = chatMessages[user.id] || [];
             chatMessagesEl.innerHTML = msgs.map(m => `
             <div class="msg ${m.fromMe ? 'sent' : 'received'}">
               ${m.text}
-              <span class="time">${formatTime(m.time)}</span>
+              <span class="time">${m.time ? new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
             </div>
           `).join('');
             chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
             chatInput.value = '';
             chatInput.focus();
+
+            if (msgs.length > 3) {
+                chatAd2.style.display = 'flex';
+            } else {
+                chatAd2.style.display = 'none';
+            }
         }
 
-        function formatTime(iso) {
-            if (!iso) return '';
-            const d = new Date(iso);
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function sendChatMessage() {
+        async function sendChatMessage() {
             const text = chatInput.value.trim();
             if (!text || state.selectedChatId === null || !currentUser) return;
-            const uid = state.selectedChatId;
-            if (!appData.chatMessages[uid]) appData.chatMessages[uid] = [];
-            appData.chatMessages[uid].push({ text, fromMe: true, time: new Date().toISOString() });
+            const otherUserId = state.selectedChatId;
+            state.messageCount++;
+            await sendMessage(otherUserId, text);
             chatInput.value = '';
-            saveData(appData);
-            const user = appData.users.find(u => u.id === uid);
-            if (user) renderChat(user);
-
-            const targetUser = appData.users.find(u => u.id === uid);
-            if (targetUser && targetUser.online) {
-                const typingEl = document.createElement('div');
-                typingEl.className = 'typing-indicator';
-                typingEl.id = 'typingIndicator';
-                typingEl.innerHTML = '<span></span><span></span><span></span>';
-                chatMessagesEl.appendChild(typingEl);
-                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-
+            if (state.messageCount % 3 === 0) {
                 setTimeout(() => {
-                    const typingInd = document.getElementById('typingIndicator');
-                    if (typingInd) typingInd.remove();
-                    const replies = [
-                        'That\'s awesome! 😊', 'I totally agree!', 'Tell me more about that.',
-                        'Haha, you\'re funny! 😄', 'Interesting!', 'I was thinking the same!',
-                        'Wow, really?', 'That\'s so cool!', 'I love that!',
-                        'You\'re sweet 🥰', 'Haha okay 😂', 'I see what you mean.',
-                        'Definitely!', 'Oh, I need to try that!', 'You\'re making me smile 😊'
-                    ];
-                    const reply = replies[Math.floor(Math.random() * replies.length)];
-                    if (!appData.chatMessages[uid]) appData.chatMessages[uid] = [];
-                    appData.chatMessages[uid].push({ text: reply, fromMe: false, time: new Date().toISOString() });
-                    saveData(appData);
-                    const user2 = appData.users.find(u => u.id === uid);
-                    if (user2) renderChat(user2);
-                }, 1400 + Math.random() * 1200);
+                    showToast('📢 Ad: Get Flutter Premium now!');
+                }, 300);
             }
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  STORIES (unchanged)
+        //  STORIES
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderStories() {
-            if (!currentUser) return;
-            const usersWithStories = appData.users.filter(u =>
-                u.id !== currentUser.id && u.stories && u.stories.length > 0
+            if (!currentUserData) return;
+            const usersWithStories = allUsers.filter(u =>
+                u.id !== currentUser.uid && u.stories && u.stories.length > 0
             );
-            const hasMyStory = currentUser.stories && currentUser.stories.length > 0;
 
             let html = '';
             html += `
-            <div class="story-circle" data-userid="${currentUser.id}" data-add="true">
+            <div class="story-circle" data-userid="${currentUser.uid}" data-add="true">
               <div class="avatar-wrap add">
                 <div class="add-icon">+</div>
               </div>
@@ -2762,10 +2655,9 @@
           `;
 
             usersWithStories.forEach(u => {
-                const viewed = appData.storyViews && appData.storyViews[u.id];
                 html += `
               <div class="story-circle" data-userid="${u.id}" data-add="false">
-                <div class="avatar-wrap ${viewed ? 'viewed' : ''}">
+                <div class="avatar-wrap">
                   <img src="${u.image}" alt="${u.name}" />
                 </div>
                 <span class="name">${u.name}</span>
@@ -2777,21 +2669,30 @@
 
             storiesRow.querySelectorAll('.story-circle').forEach(el => {
                 el.addEventListener('click', () => {
-                    const uid = parseInt(el.dataset.userid);
+                    const uid = el.dataset.userid;
                     const add = el.dataset.add === 'true';
                     if (add) {
                         const url = prompt('Enter image URL for your story:', 'https://picsum.photos/400/800?random=' +
                             Math.floor(Math.random() * 1000));
                         if (url) {
-                            if (!currentUser.stories) currentUser.stories = [];
-                            currentUser.stories.push({ image: url, caption: 'My story' });
-                            saveData(appData);
-                            renderStories();
-                            showToast('Story added! 🎉');
+                            const userRef = db.collection('users').doc(currentUser.uid);
+                            userRef.update({
+                                stories: firebase.firestore.FieldValue.arrayUnion({
+                                    image: url,
+                                    caption: 'My story',
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                                })
+                            }).then(() => {
+                                showToast('Story added! 🎉');
+                                loadUserData(currentUser.uid).then(data => {
+                                    currentUserData = data;
+                                    renderStories();
+                                });
+                            });
                         }
                         return;
                     }
-                    const user = appData.users.find(u => u.id === uid);
+                    const user = allUsers.find(u => u.id === uid);
                     if (user && user.stories && user.stories.length > 0) {
                         openStoryViewer(user);
                     }
@@ -2805,12 +2706,13 @@
             storyViewer.classList.add('show');
             renderStorySlide();
             startStoryTimer();
+            storyAd.style.display = 'flex';
         }
 
         function renderStorySlide() {
             const user = state.storyUser;
             const index = state.storyIndex;
-            const stories = user.stories;
+            const stories = user.stories || [];
             if (!stories || index >= stories.length) {
                 closeStoryViewer();
                 return;
@@ -2822,11 +2724,6 @@
             storyCaption.textContent = story.caption || '';
             storyUserAvatar.src = user.image;
             storyUserName.textContent = user.name;
-
-            if (!appData.storyViews) appData.storyViews = {};
-            appData.storyViews[user.id] = true;
-            saveData(appData);
-            renderStories();
 
             storyProgress.innerHTML = '';
             stories.forEach((_, i) => {
@@ -2881,6 +2778,7 @@
             }
             storyProgress.innerHTML = '';
             state.storyUser = null;
+            storyAd.style.display = 'none';
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2901,7 +2799,6 @@
                 matchesView.classList.add('active');
                 document.querySelector('.bottom-tab button[data-tab="matches"]')?.classList.add('active');
                 renderMatches();
-                // Re-run search if query exists
                 if (state.searchQuery) {
                     performSearch(searchInput.value);
                 } else {
@@ -2918,13 +2815,13 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  PROFILE (unchanged)
+        //  PROFILE
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderProfile() {
-            if (!currentUser) return;
-            const me = currentUser;
-            profileCover.src = me.image;
+            if (!currentUserData) return;
+            const me = currentUserData;
+            profileCover.src = me.image || 'https://i.pravatar.cc/400?img=1';
             profileCover.onerror = () => { profileCover.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="180" viewBox="0 0 400 180"%3E%3Crect fill="%23e8e8ea" width="400" height="180"/%3E%3Ctext x="200" y="90" font-size="40" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             profileName.textContent = me.name;
@@ -2932,64 +2829,127 @@
             profileBio.textContent = me.bio;
             profileInterests.innerHTML = (me.interests || []).map(i => `<span>#${i}</span>`).join('');
 
-            statLikes.textContent = appData.liked.length;
-            statMatches.textContent = appData.matches.length;
-            statViews.textContent = appData.profileViews || 0;
-
-            if (!appData.profileViews) appData.profileViews = 0;
-            appData.profileViews++;
-            saveData(appData);
+            statLikes.textContent = '0';
+            statMatches.textContent = matches.length;
+            statViews.textContent = '0';
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  RESET (unchanged)
+        //  LOGOUT & RESET
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function logout() {
+            if (unsubscribeChat) {
+                unsubscribeChat();
+                unsubscribeChat = null;
+            }
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
 
         function resetApp() {
-            if (!confirm('Reset all data? This will clear your matches, likes, and messages.')) return;
-            if (currentUser) {
-                appData.liked = [];
-                appData.passed = [];
-                appData.matches = [];
-                appData.chatMessages = {};
-                appData.storyViews = {};
-                appData.profileViews = 0;
-                saveData(appData);
+            if (confirm('Reset local state? (This will not delete Firebase data)')) {
                 state.currentIndex = 0;
                 state.isAnimating = false;
-                matchPopup.classList.remove('show');
-                confettiContainer.innerHTML = '';
-                closeStoryViewer();
-                updateBadges();
-                if (state.currentView === 'swipe') {
-                    renderStack();
-                    renderStories();
-                } else {
-                    switchView('swipe');
+                matches = [];
+                chatMessages = {};
+                if (unsubscribeChat) {
+                    unsubscribeChat();
+                    unsubscribeChat = null;
                 }
+                updateBadges();
                 renderMatches();
-                showToast('Data reset! 🔄');
+                renderStack();
+                showToast('Local state reset!');
             }
         }
-        window.resetApp = resetApp;
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  INIT APP
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        function initApp() {
-            appMain.classList.add('visible');
-            loginOverlay.classList.add('hidden');
-            renderStack();
-            renderMatches();
-            updateBadges();
-            renderStories();
-            switchView('swipe');
-            console.log('❤️ Flutter — Logged in as', currentUser?.name);
+        async function initApp(user) {
+            try {
+                const userData = await loadUserData(user.uid);
+                if (!userData) {
+                    showToast('User profile not found. Please create one.');
+                    return;
+                }
+                currentUser = user;
+                currentUserData = userData;
+
+                await loadAllUsers();
+                await loadMatches();
+
+                appMain.classList.add('visible');
+                loginOverlay.classList.add('hidden');
+                renderProfile();
+                renderStories();
+                renderStack();
+                switchView('swipe');
+                showToast(`Welcome ${userData.name}!`);
+                console.log('✅ Logged in as', userData.name);
+            } catch (error) {
+                console.error('Init error:', error);
+                showToast('Error loading data. Please refresh.');
+            }
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  EVENT BINDING (buttons etc) – unchanged
+        //  AUTH HANDLERS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            const username = loginUsername.value.trim();
+            const displayName = loginDisplayName.value.trim();
+            const age = loginAge.value.trim();
+            const location = loginLocation.value.trim();
+            const bio = loginBio.value.trim();
+
+            loginError.textContent = '';
+
+            if (!email || !password) {
+                loginError.textContent = 'Please enter email and password.';
+                return;
+            }
+            if (!username || !displayName || !age || !location || !bio) {
+                loginError.textContent = 'Please fill all profile fields.';
+                return;
+            }
+
+            try {
+                const user = await signUpOrLogin(email, password, username, displayName, age, location, bio);
+                loginError.textContent = '';
+                await initApp(user);
+            } catch (error) {
+                loginError.textContent = error.message;
+                console.error(error);
+            }
+        });
+
+        demoLoginBtn.addEventListener('click', async () => {
+            const demoEmail = 'demo@flutter.com';
+            const demoPassword = 'demopass123';
+            const demoUsername = 'guest_demo';
+            const demoDisplayName = 'Guest User';
+            try {
+                const user = await signUpOrLogin(demoEmail, demoPassword, demoUsername, demoDisplayName, 25, 'San Francisco',
+                    'Just exploring! 🌟');
+                loginError.textContent = '';
+                await initApp(user);
+            } catch (error) {
+                loginError.textContent = 'Demo login failed: ' + error.message;
+                console.error(error);
+            }
+        });
+
+        logoutBtn.addEventListener('click', logout);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  EVENT BINDING
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         btnLike.addEventListener('click', () => {
@@ -3004,7 +2964,7 @@
                 card.style.transform = 'translate(120%, -40px) rotate(20deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(() => likeUser(user, card), 100);
+            setTimeout(() => likeUser(user), 100);
         });
 
         btnNope.addEventListener('click', () => {
@@ -3019,10 +2979,10 @@
                 card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(() => passUser(user, card), 100);
+            setTimeout(() => passUser(user), 100);
         });
 
-        btnSuper.addEventListener('click', () => {
+        btnSuper.addEventListener('click', async () => {
             if (state.isAnimating || !currentUser) return;
             const user = getNextUser();
             if (!user) return;
@@ -3037,32 +2997,22 @@
                 card.style.transform = 'translate(0, -80px) scale(1.05) rotate(0deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(() => {
-                if (!appData.liked.includes(user.id)) appData.liked.push(user.id);
-                if (!appData.matches.includes(user.id)) {
-                    appData.matches.push(user.id);
-                    if (!appData.chatMessages[user.id]) {
-                        appData.chatMessages[user.id] = [
-                            { text: `🌟 Super liked you!`, fromMe: true, time: new Date().toISOString() },
-                            { text: `Oh wow! I'm flattered! 🥰`, fromMe: false, time: new Date().toISOString() },
-                        ];
-                    }
-                    saveData(appData);
-                    updateBadges();
-                    setTimeout(() => {
-                        showMatchPopup(user);
-                        state.isAnimating = false;
-                    }, 450);
-                } else {
-                    saveData(appData);
-                    updateBadges();
+            setTimeout(async () => {
+                await addMatch(user.id);
+                await db.collection('likes').add({
+                    from: currentUser.uid,
+                    to: user.id,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+                setTimeout(() => {
+                    showMatchPopup(user);
                     state.isAnimating = false;
-                    renderStack();
-                }
+                }, 450);
                 state.isAnimating = true;
                 setTimeout(() => {
                     state.isAnimating = false;
                     renderStack();
+                    showSwipeAd();
                 }, 600);
             }, 100);
         });
@@ -3070,7 +3020,7 @@
         resetBtn.addEventListener('click', resetApp);
 
         notifBtn.addEventListener('click', () => {
-            if (appData.matches.length > 0) {
+            if (matches.length > 0) {
                 switchView('matches');
             } else {
                 showToast('No notifications yet. Keep swiping! 💕');
@@ -3093,13 +3043,17 @@
         });
 
         matchChatBtn.addEventListener('click', () => {
-            const uid = parseInt(matchChatBtn.dataset.userId);
+            const uid = matchChatBtn.dataset.userId;
             matchPopup.classList.remove('show');
             confettiContainer.innerHTML = '';
             openChat(uid);
         });
 
         chatBack.addEventListener('click', () => {
+            if (unsubscribeChat) {
+                unsubscribeChat();
+                unsubscribeChat = null;
+            }
             switchView('matches');
             renderMatches();
         });
@@ -3110,12 +3064,14 @@
         });
 
         profileEditBtn.addEventListener('click', () => {
-            const newName = prompt('Display name:', currentUser?.name || '');
-            if (newName && currentUser) {
-                currentUser.name = newName;
-                saveData(appData);
-                renderProfile();
-                showToast('Profile updated! ✅');
+            const newName = prompt('Display name:', currentUserData?.name || '');
+            if (newName && currentUserData) {
+                const userRef = db.collection('users').doc(currentUser.uid);
+                userRef.update({ name: newName }).then(() => {
+                    currentUserData.name = newName;
+                    renderProfile();
+                    showToast('Profile updated! ✅');
+                });
             }
         });
 
@@ -3123,13 +3079,14 @@
         storyNext.addEventListener('click', nextStory);
         storyPrev.addEventListener('click', prevStory);
 
-        document.querySelectorAll('.ad-cta, .ad-banner, .ad-match, .chat-ad .ad-cta').forEach(el => {
+        document.querySelectorAll('.ad-cta, .ad-banner, .ad-match, .chat-ad .ad-cta, .story-ad .ad-cta').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showToast('✨ Premium feature — coming soon!');
             });
         });
         adBannerSwipe.addEventListener('click', () => showToast('💎 Upgrade to Premium to see who liked you!'));
+        storyAd.addEventListener('click', () => showToast('📸 Share your story with Flutter+!'));
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  KEYBOARD SHORTCUTS
@@ -3161,7 +3118,6 @@
                 confettiContainer.innerHTML = '';
                 closeStoryViewer();
             }
-            // Ctrl+F or Cmd+F to focus search
             if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
                 e.preventDefault();
                 if (state.currentView !== 'matches') switchView('matches');
@@ -3170,25 +3126,30 @@
         });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTO-LOGIN if user exists
+        //  AUTH STATE OBSERVER
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        if (appData.currentUser) {
-            const user = appData.users.find(u => u.id === appData.currentUser);
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                currentUser = user;
-                loginUser(user.id);
-                initApp();
+                if (!currentUser) {
+                    await initApp(user);
+                }
             } else {
-                appData.currentUser = null;
-                saveData(appData);
+                loginOverlay.classList.remove('hidden');
+                appMain.classList.remove('visible');
+                currentUser = null;
+                currentUserData = null;
+                matches = [];
+                allUsers = [];
+                if (unsubscribeChat) {
+                    unsubscribeChat();
+                    unsubscribeChat = null;
+                }
             }
-        }
+        });
 
-        console.log('❤️ Flutter Dating App v2.2 — Username search added');
-        console.log('📦 Data stored in localStorage');
-        console.log('⌨️ Shortcuts: ←/p=pass, →/l=like, ↑/s=super, r=reset, m=matches, 1=swipe, 3=profile, Ctrl+F to search');
-        console.log('👤 Current user:', currentUser?.name || 'Not logged in');
+        console.log('❤️ Flutter Firebase — Real-time dating app');
+        console.log('🔑 Firebase configured with your project.');
         console.log('💡 Search for any user by username in the Matches tab.');
     </script>
 </body>
