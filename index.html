@@ -747,6 +747,49 @@
             border-radius: 20px;
             font-weight: 600;
         }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border-radius: var(--radius-sm);
+            padding: 4px 12px 4px 16px;
+            margin-bottom: 12px;
+            border: 2px solid #e8e8ea;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+        }
+        .search-box .icon {
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 0;
+            font-size: 15px;
+            background: transparent;
+            font-family: inherit;
+        }
+        .search-box input::placeholder {
+            color: #bbb;
+        }
+        .search-box .clear-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            display: none;
+        }
+        .search-box .clear-btn.visible {
+            display: block;
+        }
+
         .match-item {
             display: flex;
             align-items: center;
@@ -825,6 +868,13 @@
         .no-matches .icon {
             font-size: 48px;
             margin-bottom: 12px;
+        }
+        .search-results {
+            margin-top: 4px;
+        }
+        .search-results .match-item {
+            background: #fafafa;
+            border: 1px solid #e8e8ea;
         }
 
         /* ─── AD IN MATCHES ─── */
@@ -1653,16 +1703,25 @@
                     </div>
                 </div>
 
-                <!-- MATCHES VIEW -->
+                <!-- MATCHES VIEW (with search) -->
                 <div class="view matches-view" id="matchesView">
                     <div class="section-title">💬 Matches <span id="matchCountBadge">0</span></div>
-                    <!-- Ad in matches -->
+                    <!-- Search box -->
+                    <div class="search-box" id="searchBox">
+                        <span class="icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search by username..." />
+                        <button class="clear-btn" id="clearSearch">✕</button>
+                    </div>
+                    <!-- Ad -->
                     <div class="ad-match" id="adMatch">
                         <span class="ad-icon">📱</span>
                         <span class="ad-text">Get <strong>Flutter Premium</strong> — unlimited likes &amp; rewinds</span>
                         <button class="ad-cta">Learn More</button>
                     </div>
+                    <!-- Matches list -->
                     <div id="matchesList"></div>
+                    <!-- Search results -->
+                    <div class="search-results" id="searchResults"></div>
                 </div>
 
                 <!-- CHAT VIEW -->
@@ -1780,6 +1839,7 @@
         const BUILTIN_USERS = [{
             id: 101,
             name: 'Priya Sharma',
+            username: 'priya_sharma',
             age: 24,
             location: 'Mumbai, India',
             bio: '🌏 Travel junkie | ☕ Coffee addict | 📸 Capturing moments. Let\'s explore the world together!',
@@ -1793,6 +1853,7 @@
         }, {
             id: 102,
             name: 'Arjun Reddy',
+            username: 'arjun_reddy',
             age: 27,
             location: 'Bangalore, India',
             bio: '🚀 Tech enthusiast & startup founder. Love hiking, gaming, and late-night coding.',
@@ -1805,6 +1866,7 @@
         }, {
             id: 103,
             name: 'Sneha Patel',
+            username: 'sneha_patel',
             age: 23,
             location: 'Delhi, India',
             bio: '🎭 Theatre actor & dancer. Living life one performance at a time. 😊',
@@ -1818,6 +1880,7 @@
         }, {
             id: 104,
             name: 'Vikram Singh',
+            username: 'vikram_singh',
             age: 29,
             location: 'Hyderabad, India',
             bio: '🏏 Cricket fan | 📚 Bookworm | 🍕 Pizza lover. Looking for my partner in crime.',
@@ -1828,6 +1891,7 @@
         }, {
             id: 105,
             name: 'Ananya Iyer',
+            username: 'ananya_iyer',
             age: 25,
             location: 'Chennai, India',
             bio: '🎨 Artist & designer. Finding beauty in the little things. Let\'s create together.',
@@ -1840,6 +1904,7 @@
         }, {
             id: 106,
             name: 'Rohit Mehta',
+            username: 'rohit_mehta',
             age: 26,
             location: 'Pune, India',
             bio: '🏋️ Fitness freak | 🎸 Guitar player | 🌱 Plant dad. Good vibes only!',
@@ -1850,6 +1915,7 @@
         }, {
             id: 107,
             name: 'Kavya Nair',
+            username: 'kavya_nair',
             age: 22,
             location: 'Kochi, India',
             bio: '🌊 Beach lover | 📝 Writer | 🧘‍♀️ Yoga. Deep conversations & laughter.',
@@ -1863,6 +1929,7 @@
         }, {
             id: 108,
             name: 'Amit Kumar',
+            username: 'amit_kumar',
             age: 28,
             location: 'Jaipur, India',
             bio: '🏛️ History buff | 🍛 Food explorer | 📷 Street photographer. Wander & wonder.',
@@ -1873,6 +1940,7 @@
         }, {
             id: 109,
             name: 'Riya Das',
+            username: 'riya_das',
             age: 24,
             location: 'Kolkata, India',
             bio: '🎶 Music is my religion | 📖 Poetry | ☕ Chai over everything.',
@@ -1885,6 +1953,7 @@
         }, {
             id: 110,
             name: 'Dev Patel',
+            username: 'dev_patel',
             age: 26,
             location: 'Ahmedabad, India',
             bio: '🚴‍♂️ Cyclist | 💻 Developer | 🎮 Gamer. Balancing screens & pedals.',
@@ -1895,6 +1964,7 @@
         }, {
             id: 111,
             name: 'Maya Krishnan',
+            username: 'maya_krishnan',
             age: 25,
             location: 'Coimbatore, India',
             bio: '🌿 Nature lover | 🧁 Baker | 📸 Nature photographer. Sweetness & serenity.',
@@ -1908,6 +1978,7 @@
         }, {
             id: 112,
             name: 'Kabir Singh',
+            username: 'kabir_singh',
             age: 27,
             location: 'Lucknow, India',
             bio: '🎭 Stand-up comedy | 📝 Writer | 🍜 Foodie. Making the world laugh.',
@@ -1965,6 +2036,7 @@
             storyIndex: 0,
             storyTimer: null,
             isTyping: false,
+            searchQuery: '',
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1991,6 +2063,9 @@
         const chatView = $('#chatView');
         const profileView = $('#profileView');
         const matchesList = $('#matchesList');
+        const searchResults = $('#searchResults');
+        const searchInput = $('#searchInput');
+        const clearSearch = $('#clearSearch');
         const matchCountBadge = $('#matchCountBadge');
         const matchPopup = $('#matchPopup');
         const matchName = $('#matchName');
@@ -2060,7 +2135,7 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTH / LOGIN  (FIXED)
+        //  AUTH / LOGIN
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function createUser(username, displayName, age, location, bio) {
@@ -2068,6 +2143,7 @@
             const newUser = {
                 id,
                 name: displayName || username,
+                username: username,
                 age: parseInt(age) || 22,
                 location: location || 'Unknown',
                 bio: bio || 'Just here to meet new people! 😊',
@@ -2075,7 +2151,6 @@
                 image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
                 online: true,
                 stories: [],
-                username: username,
                 createdAt: new Date().toISOString(),
             };
             appData.users.push(newUser);
@@ -2102,7 +2177,6 @@
             return true;
         }
 
-        // ─── FIXED LOGIN HANDLER ───
         loginBtn.addEventListener('click', () => {
             const username = loginUsername.value.trim();
             const displayName = loginDisplayName.value.trim();
@@ -2110,35 +2184,17 @@
             const location = loginLocation.value.trim();
             const bio = loginBio.value.trim();
 
-            // Clear previous error
             loginError.textContent = '';
 
-            // Validation
-            if (!username) {
-                loginError.textContent = 'Please enter a username.';
-                return;
-            }
-            if (!displayName) {
-                loginError.textContent = 'Please enter your display name.';
-                return;
-            }
-            if (!age || isNaN(parseInt(age)) || parseInt(age) < 18) {
-                loginError.textContent = 'Please enter a valid age (18+).';
-                return;
-            }
-            if (!location) {
-                loginError.textContent = 'Please enter your location.';
-                return;
-            }
-            if (!bio) {
-                loginError.textContent = 'Please enter a short bio.';
-                return;
-            }
+            if (!username) { loginError.textContent = 'Please enter a username.'; return; }
+            if (!displayName) { loginError.textContent = 'Please enter your display name.'; return; }
+            if (!age || isNaN(parseInt(age)) || parseInt(age) < 18) { loginError.textContent =
+                    'Please enter a valid age (18+).'; return; }
+            if (!location) { loginError.textContent = 'Please enter your location.'; return; }
+            if (!bio) { loginError.textContent = 'Please enter a short bio.'; return; }
 
-            // Check if username exists
             const existing = appData.users.find(u => u.username === username);
             if (existing) {
-                // Login as existing user
                 if (loginUser(existing.id)) {
                     loginError.textContent = '';
                     initApp();
@@ -2149,7 +2205,6 @@
                 return;
             }
 
-            // Create new user
             const user = createUser(username, displayName, age, location, bio);
             loginError.textContent = '';
             initApp();
@@ -2170,7 +2225,6 @@
             }
         });
 
-        // Allow Enter key on login form
         document.querySelectorAll('#loginForm input').forEach(inp => {
             inp.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') loginBtn.click();
@@ -2217,6 +2271,57 @@
                 matchCountBadge.textContent = '0';
             }
         }
+
+        // ─── SEARCH ───
+        function performSearch(query) {
+            state.searchQuery = query.trim().toLowerCase();
+            const results = appData.users.filter(u =>
+                u.id !== currentUser.id &&
+                (u.username.toLowerCase().includes(state.searchQuery) ||
+                    u.name.toLowerCase().includes(state.searchQuery))
+            );
+            renderSearchResults(results);
+            clearSearch.classList.toggle('visible', state.searchQuery.length > 0);
+        }
+
+        function renderSearchResults(results) {
+            if (results.length === 0 || state.searchQuery === '') {
+                searchResults.innerHTML = '';
+                return;
+            }
+            searchResults.innerHTML = results.map(u => `
+            <div class="match-item" data-userid="${u.id}">
+              <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
+              <div class="info">
+                <h4>${u.name}</h4>
+                <p>@${u.username} · ${u.age} · ${u.location.split(',')[0]}</p>
+              </div>
+              <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
+            </div>
+          `).join('');
+
+            searchResults.querySelectorAll('.match-item').forEach(el => {
+                const uid = parseInt(el.dataset.userid);
+                el.addEventListener('click', () => openChat(uid));
+                const btn = el.querySelector('.chat-btn');
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openChat(uid);
+                    });
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            performSearch('');
+            searchInput.focus();
+        });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  RENDER CARDS
@@ -2496,7 +2601,7 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  MATCHES LIST (unchanged)
+        //  MATCHES LIST (with search integrated)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderMatches() {
@@ -2507,30 +2612,30 @@
                 matchesList.innerHTML = `
               <div class="no-matches">
                 <div class="icon">💔</div>
-                <p>No matches yet. Keep swiping!</p>
+                <p>No matches yet. Keep swiping or search for users!</p>
               </div>
             `;
-                return;
+            } else {
+                matchesList.innerHTML = matchUsers.map(u => {
+                    const msgs = appData.chatMessages[u.id] || [];
+                    const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text : 'Start chatting!';
+                    const isFromMe = msgs.length > 0 && msgs[msgs.length - 1].fromMe;
+                    const preview = (isFromMe ? 'You: ' : '') + lastMsg;
+                    return `
+                <div class="match-item" data-userid="${u.id}">
+                  <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
+                  <div class="info">
+                    <h4>${u.name}</h4>
+                    <p>${u.age} · ${u.location.split(',')[0]}</p>
+                    <div class="last-msg">${preview}</div>
+                  </div>
+                  <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
+                </div>
+              `;
+                }).join('');
             }
 
-            matchesList.innerHTML = matchUsers.map(u => {
-                const msgs = appData.chatMessages[u.id] || [];
-                const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text : 'Start chatting!';
-                const isFromMe = msgs.length > 0 && msgs[msgs.length - 1].fromMe;
-                const preview = (isFromMe ? 'You: ' : '') + lastMsg;
-                return `
-              <div class="match-item" data-userid="${u.id}">
-                <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
-                <div class="info">
-                  <h4>${u.name}</h4>
-                  <p>${u.age} · ${u.location.split(',')[0]}</p>
-                  <div class="last-msg">${preview}</div>
-                </div>
-                <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
-              </div>
-            `;
-            }).join('');
-
+            // Attach click events for matches
             matchesList.querySelectorAll('.match-item').forEach(el => {
                 const uid = parseInt(el.dataset.userid);
                 el.addEventListener('click', () => openChat(uid));
@@ -2545,12 +2650,19 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CHAT (unchanged)
+        //  CHAT (with non-match support)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function openChat(userId) {
             const user = appData.users.find(u => u.id === userId);
             if (!user || !currentUser) return;
+            // If not a match, add to matches for convenience
+            if (!appData.matches.includes(userId)) {
+                appData.matches.push(userId);
+                saveData(appData);
+                updateBadges();
+                renderMatches();
+            }
             state.selectedChatId = userId;
             if (!appData.chatMessages[userId]) {
                 appData.chatMessages[userId] = [
@@ -2772,7 +2884,7 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  VIEW SWITCHING (unchanged)
+        //  VIEW SWITCHING
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function switchView(view) {
@@ -2789,6 +2901,12 @@
                 matchesView.classList.add('active');
                 document.querySelector('.bottom-tab button[data-tab="matches"]')?.classList.add('active');
                 renderMatches();
+                // Re-run search if query exists
+                if (state.searchQuery) {
+                    performSearch(searchInput.value);
+                } else {
+                    searchResults.innerHTML = '';
+                }
             } else if (view === 'chat') {
                 chatView.classList.add('active');
             } else if (view === 'profile') {
@@ -3043,6 +3161,12 @@
                 confettiContainer.innerHTML = '';
                 closeStoryViewer();
             }
+            // Ctrl+F or Cmd+F to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                if (state.currentView !== 'matches') switchView('matches');
+                setTimeout(() => searchInput.focus(), 100);
+            }
         });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3061,11 +3185,11 @@
             }
         }
 
-        console.log('❤️ Flutter Dating App v2.1 — Login fixed');
+        console.log('❤️ Flutter Dating App v2.2 — Username search added');
         console.log('📦 Data stored in localStorage');
-        console.log('⌨️ Shortcuts: ←/p=pass, →/l=like, ↑/s=super, r=reset, m=matches, 1=swipe, 3=profile');
+        console.log('⌨️ Shortcuts: ←/p=pass, →/l=like, ↑/s=super, r=reset, m=matches, 1=swipe, 3=profile, Ctrl+F to search');
         console.log('👤 Current user:', currentUser?.name || 'Not logged in');
-        console.log('💡 Create an account or use guest mode to start.');
+        console.log('💡 Search for any user by username in the Matches tab.');
     </script>
 </body>
 </html>
