@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>❤️ Flutter — Dating App</title>
-    <!-- Firebase SDKs (Compat) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -60,7 +60,7 @@
             }
         }
 
-        /* ─── LOGIN ─── */
+        /* ─── LOGIN OVERLAY ─── */
         .login-overlay {
             position: absolute;
             inset: 0;
@@ -74,6 +74,7 @@
             transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             opacity: 1;
             pointer-events: auto;
+            overflow-y: auto;
         }
         .login-overlay.hidden {
             opacity: 0;
@@ -84,6 +85,7 @@
             width: 100%;
             max-width: 360px;
             text-align: center;
+            padding: 8px 0;
         }
         .login-box .logo-big {
             font-size: 52px;
@@ -97,16 +99,66 @@
         .login-box .sub {
             color: var(--text-secondary);
             font-size: 15px;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
             font-weight: 400;
+        }
+
+        /* ─── TABS ─── */
+        .auth-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f0f0f3;
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .auth-tabs button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .auth-tabs button.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .auth-tabs button:hover {
+            color: var(--text);
+        }
+
+        /* ─── FORM FIELDS ─── */
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .auth-form.active {
+            display: flex;
         }
         .login-box .input-group {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .login-box .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            margin-left: 4px;
         }
         .login-box .input-group input {
             width: 100%;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border: 2px solid #e8e8ea;
             border-radius: var(--radius-sm);
             font-size: 15px;
@@ -119,18 +171,10 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.08);
         }
-        .login-box .input-group label {
-            display: block;
-            text-align: left;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-            margin-left: 4px;
-        }
+
         .login-box .btn-primary {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border: none;
             border-radius: var(--radius-sm);
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
@@ -150,37 +194,32 @@
         .login-box .btn-primary:active {
             transform: scale(0.97);
         }
-        .login-box .btn-secondary {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 14px;
-            font-family: inherit;
-            transition: opacity 0.2s;
+        .login-box .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
-        .login-box .btn-secondary:hover {
-            opacity: 0.7;
-        }
+
         .login-box .error-msg {
             color: #ff1744;
             font-size: 13px;
-            min-height: 22px;
-            margin: 6px 0;
+            min-height: 20px;
+            margin: 4px 0;
+            text-align: left;
         }
         .login-box .success-msg {
             color: #00c853;
             font-size: 13px;
-            min-height: 22px;
-            margin: 6px 0;
+            min-height: 20px;
+            margin: 4px 0;
+            text-align: left;
         }
+
         .login-box .divider {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin: 18px 0 16px;
+            margin: 14px 0 12px;
             color: #bbb;
             font-size: 13px;
         }
@@ -191,6 +230,7 @@
             height: 1px;
             background: #e8e8ea;
         }
+
         .login-box .demo-hint {
             font-size: 12px;
             color: #aaa;
@@ -204,7 +244,7 @@
             color: var(--text);
         }
 
-        /* ─── MAIN APP ─── */
+        /* ─── MAIN APP ─── (rest of the app, same as before) ─── */
         .app-main {
             display: flex;
             flex-direction: column;
@@ -217,8 +257,6 @@
             opacity: 1;
             pointer-events: auto;
         }
-
-        /* ─── HEADER ─── */
         .header {
             padding: 14px 20px 6px;
             display: flex;
@@ -278,8 +316,6 @@
             justify-content: center;
             padding: 0 4px;
         }
-
-        /* ─── MAIN CONTENT ─── */
         .main-content {
             flex: 1;
             position: relative;
@@ -288,8 +324,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* ─── VIEWS ─── */
         .view {
             position: absolute;
             inset: 0;
@@ -312,7 +346,7 @@
             width: 0;
         }
 
-        /* ─── STORIES ROW ─── */
+        /* Stories */
         .stories-wrapper {
             flex-shrink: 0;
             padding: 6px 0 10px;
@@ -376,9 +410,6 @@
             color: #999;
             background: #f5f5f7;
         }
-        .story-circle .avatar-wrap.viewed {
-            background: #ccc;
-        }
         .story-circle .name {
             font-size: 11px;
             color: var(--text-secondary);
@@ -392,7 +423,7 @@
             color: var(--primary);
         }
 
-        /* ─── AD BANNERS ─── */
+        /* Ads */
         .ad-banner {
             flex-shrink: 0;
             background: linear-gradient(135deg, #f0ecf7, #e8e4f0);
@@ -406,10 +437,6 @@
             border: 1px solid rgba(255, 56, 92, 0.08);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .ad-banner:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
         .ad-banner .ad-icon {
             font-size: 28px;
@@ -448,7 +475,7 @@
             font-weight: 600;
         }
 
-        /* ─── CARD STACK ─── */
+        /* Card Stack */
         .card-stack-wrap {
             flex: 1;
             position: relative;
@@ -474,8 +501,7 @@
             background: var(--card-bg);
             box-shadow: var(--shadow);
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
             will-change: transform;
             cursor: grab;
             touch-action: none;
@@ -613,7 +639,6 @@
             }
         }
 
-        /* ─── ACTION BUTTONS ─── */
         .actions {
             display: flex;
             justify-content: center;
@@ -682,7 +707,6 @@
             color: #fff;
         }
 
-        /* ─── EMPTY STATE ─── */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -720,11 +744,8 @@
             font-family: inherit;
             transition: transform 0.2s;
         }
-        .empty-state button:hover {
-            transform: scale(1.03);
-        }
 
-        /* ─── MATCHES VIEW ─── */
+        /* Matches View */
         .matches-view .section-title {
             font-size: 22px;
             font-weight: 700;
@@ -863,8 +884,6 @@
             background: #fafafa;
             border: 1px solid #e8e8ea;
         }
-
-        /* ─── AD IN MATCHES ─── */
         .ad-match {
             background: linear-gradient(135deg, #fff5f7, #fef0f2);
             border-radius: var(--radius-sm);
@@ -898,7 +917,7 @@
             font-family: inherit;
         }
 
-        /* ─── CHAT VIEW ─── */
+        /* Chat View */
         .chat-view {
             display: flex;
             flex-direction: column;
@@ -1000,39 +1019,6 @@
         .chat-messages .msg.received .time {
             color: var(--text-secondary);
         }
-        .chat-messages .typing-indicator {
-            align-self: flex-start;
-            background: #f0f0f3;
-            padding: 10px 16px;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            display: flex;
-            gap: 4px;
-            align-items: center;
-        }
-        .chat-messages .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-secondary);
-            animation: typingBounce 1.4s infinite;
-        }
-        .chat-messages .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .chat-messages .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes typingBounce {
-            0%,
-            60%,
-            100% {
-                transform: translateY(0);
-            }
-            30% {
-                transform: translateY(-6px);
-            }
-        }
         @keyframes msgIn {
             from {
                 opacity: 0;
@@ -1110,7 +1096,7 @@
             font-size: 12px;
         }
 
-        /* ─── PROFILE VIEW ─── */
+        /* Profile View */
         .profile-view {
             padding: 4px 0 8px;
         }
@@ -1199,7 +1185,7 @@
             color: var(--text-secondary);
         }
 
-        /* ─── MATCH POPUP ─── */
+        /* Match Popup */
         .match-popup-overlay {
             position: absolute;
             inset: 0;
@@ -1297,7 +1283,7 @@
             color: var(--text);
         }
 
-        /* ─── STORY VIEWER ─── */
+        /* Story Viewer */
         .story-viewer-overlay {
             position: absolute;
             inset: 0;
@@ -1453,6 +1439,7 @@
             font-size: 11px;
             cursor: pointer;
         }
+
         .swipe-ad-toast {
             position: absolute;
             bottom: 160px;
@@ -1474,7 +1461,7 @@
             opacity: 1;
         }
 
-        /* ─── BOTTOM TAB ─── */
+        /* Bottom Tab */
         .bottom-tab {
             display: flex;
             justify-content: space-around;
@@ -1536,7 +1523,6 @@
             padding: 0 4px;
         }
 
-        /* ─── CONFETTI ─── */
         .confetti-container {
             position: absolute;
             inset: 0;
@@ -1563,8 +1549,6 @@
                 opacity: 0;
             }
         }
-
-        /* ─── SCROLLBAR ─── */
         ::-webkit-scrollbar {
             width: 3px;
         }
@@ -1575,8 +1559,6 @@
             background: #ddd;
             border-radius: 10px;
         }
-
-        /* ─── RESPONSIVE ─── */
         @media (max-width: 440px) {
             .main-content {
                 padding: 4px 12px 0;
@@ -1626,8 +1608,6 @@
                 max-height: 400px;
             }
         }
-
-        /* ─── TOAST ─── */
         .toast {
             position: absolute;
             bottom: 90px;
@@ -1658,47 +1638,71 @@
 
     <div class="app" id="app">
 
-        <!-- ─── LOGIN ─── -->
+        <!-- ─── LOGIN OVERLAY ─── -->
         <div class="login-overlay" id="loginOverlay">
             <div class="login-box">
                 <div class="logo-big">❤️ Flutter</div>
                 <p class="sub">Find your perfect match</p>
-                <div id="loginForm">
+
+                <!-- Tabs -->
+                <div class="auth-tabs" id="authTabs">
+                    <button class="active" data-tab="login">🔐 Login</button>
+                    <button data-tab="signup">✨ Sign Up</button>
+                </div>
+
+                <!-- ─── LOGIN FORM ─── -->
+                <div class="auth-form active" id="loginForm">
                     <div class="input-group">
                         <label>📧 Email</label>
-                        <input type="email" id="loginEmail" placeholder="your@email.com" value="demo@flutter.com" />
+                        <input type="email" id="loginEmail" placeholder="your@email.com" />
                     </div>
                     <div class="input-group">
                         <label>🔒 Password</label>
-                        <input type="password" id="loginPassword" placeholder="Password" value="password123" />
+                        <input type="password" id="loginPassword" placeholder="Password" />
+                    </div>
+                    <button class="btn-primary" id="loginBtn">🔐 Login</button>
+                    <div class="error-msg" id="loginError"></div>
+                </div>
+
+                <!-- ─── SIGN UP FORM ─── -->
+                <div class="auth-form" id="signupForm">
+                    <div class="input-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="signupEmail" placeholder="your@email.com" />
+                    </div>
+                    <div class="input-group">
+                        <label>🔒 Password (min 6 chars)</label>
+                        <input type="password" id="signupPassword" placeholder="Password" />
                     </div>
                     <div class="input-group">
                         <label>👤 Username</label>
-                        <input type="text" id="loginUsername" placeholder="Choose a username" value="alex" />
+                        <input type="text" id="signupUsername" placeholder="Choose a username" />
                     </div>
                     <div class="input-group">
                         <label>📛 Display Name</label>
-                        <input type="text" id="loginDisplayName" placeholder="Your name" value="Alex" />
+                        <input type="text" id="signupDisplayName" placeholder="Your name" />
                     </div>
                     <div class="input-group">
                         <label>🎂 Age (18+)</label>
-                        <input type="number" id="loginAge" placeholder="Your age" value="24" />
+                        <input type="number" id="signupAge" placeholder="Your age" />
                     </div>
                     <div class="input-group">
                         <label>📍 Location</label>
-                        <input type="text" id="loginLocation" placeholder="City, Country" value="Mumbai, India" />
+                        <input type="text" id="signupLocation" placeholder="City, Country" />
                     </div>
                     <div class="input-group">
                         <label>📝 Bio</label>
-                        <input type="text" id="loginBio" placeholder="Tell us about yourself" value="Adventurer & coffee lover ☕" />
+                        <input type="text" id="signupBio" placeholder="Tell us about yourself" />
                     </div>
-                    <button class="btn-primary" id="loginBtn">✨ Create Account / Login</button>
-                    <div class="error-msg" id="loginError"></div>
-                    <div class="divider">or</div>
-                    <button class="btn-secondary" id="demoLoginBtn">🔑 Login as Guest (Demo)</button>
-                    <div class="demo-hint">
-                        💡 <strong>Real-time with Firebase:</strong> Create your account, share this link, and chat with anyone!
-                    </div>
+                    <button class="btn-primary" id="signupBtn">✨ Create Account</button>
+                    <div class="error-msg" id="signupError"></div>
+                </div>
+
+                <div class="divider">or</div>
+                <button class="btn-secondary" id="demoLoginBtn">🔑 Continue as Guest (Demo)</button>
+                <div class="demo-hint">
+                    💡 <strong>Demo:</strong> Login with <strong>demo@flutter.com</strong> / <strong>demopass123</strong><br />
+                    या अपना नया अकाउंट बनाएँ।
                 </div>
             </div>
         </div>
@@ -1706,11 +1710,11 @@
         <!-- ─── MAIN APP ─── -->
         <div class="app-main" id="appMain">
 
-            <!-- ─── HEADER ─── -->
+            <!-- HEADER -->
             <header class="header">
                 <div class="logo">❤️ Flutter</div>
                 <div class="header-actions">
-                    <button id="resetBtn" title="Reset Data (local)">🔄</button>
+                    <button id="resetBtn" title="Reset Data">🔄</button>
                     <button id="notifBtn" title="Notifications">
                         🔔
                         <span class="badge" id="notifBadge" style="display:none;">0</span>
@@ -1719,7 +1723,7 @@
                 </div>
             </header>
 
-            <!-- ─── MAIN CONTENT ─── -->
+            <!-- MAIN CONTENT -->
             <div class="main-content" id="mainContent">
 
                 <!-- SWIPE VIEW -->
@@ -1738,9 +1742,9 @@
                         <div class="swipe-ad-toast" id="swipeAdToast">📢 Sponsored: Try Flutter Premium!</div>
                     </div>
                     <div class="actions">
-                        <button class="btn-nope" id="btnNope" aria-label="Pass">✖</button>
-                        <button class="btn-super" id="btnSuper" aria-label="Super Like">⭐</button>
-                        <button class="btn-like" id="btnLike" aria-label="Like">❤</button>
+                        <button class="btn-nope" id="btnNope">✖</button>
+                        <button class="btn-super" id="btnSuper">⭐</button>
+                        <button class="btn-like" id="btnLike">❤</button>
                     </div>
                 </div>
 
@@ -1809,7 +1813,7 @@
                     <button class="edit-btn" id="profileEditBtn">✏️ Edit Profile</button>
                 </div>
 
-                <!-- ─── MATCH POPUP ─── -->
+                <!-- MATCH POPUP -->
                 <div class="match-popup-overlay" id="matchPopup">
                     <div class="match-popup">
                         <div class="emoji-big">💞</div>
@@ -1827,7 +1831,7 @@
                     </div>
                 </div>
 
-                <!-- ─── STORY VIEWER ─── -->
+                <!-- STORY VIEWER -->
                 <div class="story-viewer-overlay" id="storyViewer">
                     <button class="story-close" id="storyClose">✕</button>
                     <div class="story-content" id="storyContent">
@@ -1849,15 +1853,11 @@
                     </div>
                 </div>
 
-                <!-- ─── CONFETTI ─── -->
                 <div class="confetti-container" id="confettiContainer"></div>
-
-                <!-- ─── TOAST ─── -->
                 <div class="toast" id="toast"></div>
-
             </div>
 
-            <!-- ─── BOTTOM TAB ─── -->
+            <!-- BOTTOM TAB -->
             <div class="bottom-tab">
                 <button class="active" data-tab="swipe">
                     <span class="icon">🔥</span>
@@ -1929,18 +1929,33 @@
 
         const loginOverlay = $('#loginOverlay');
         const appMain = $('#appMain');
+
+        // Login
         const loginEmail = $('#loginEmail');
         const loginPassword = $('#loginPassword');
-        const loginUsername = $('#loginUsername');
-        const loginDisplayName = $('#loginDisplayName');
-        const loginAge = $('#loginAge');
-        const loginLocation = $('#loginLocation');
-        const loginBio = $('#loginBio');
         const loginBtn = $('#loginBtn');
-        const demoLoginBtn = $('#demoLoginBtn');
         const loginError = $('#loginError');
+
+        // Signup
+        const signupEmail = $('#signupEmail');
+        const signupPassword = $('#signupPassword');
+        const signupUsername = $('#signupUsername');
+        const signupDisplayName = $('#signupDisplayName');
+        const signupAge = $('#signupAge');
+        const signupLocation = $('#signupLocation');
+        const signupBio = $('#signupBio');
+        const signupBtn = $('#signupBtn');
+        const signupError = $('#signupError');
+
+        const demoLoginBtn = $('#demoLoginBtn');
         const logoutBtn = $('#logoutBtn');
 
+        // Tabs
+        const authTabs = $('#authTabs');
+        const loginForm = $('#loginForm');
+        const signupForm = $('#signupForm');
+
+        // App elements
         const cardStack = $('#cardStack');
         const swipeView = $('#swipeView');
         const matchesView = $('#matchesView');
@@ -2027,42 +2042,64 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  FIREBASE AUTH
+        //  AUTH TABS SWITCH
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        async function signUpOrLogin(email, password, username, displayName, age, location, bio) {
-            try {
-                let userCred = null;
-                try {
-                    userCred = await auth.signInWithEmailAndPassword(email, password);
-                } catch (e) {
-                    if (e.code === 'auth/user-not-found') {
-                        userCred = await auth.createUserWithEmailAndPassword(email, password);
-                    } else {
-                        throw e;
-                    }
-                }
+        authTabs.addEventListener('click', (e) => {
+            const tab = e.target.closest('button');
+            if (!tab) return;
+            const tabName = tab.dataset.tab;
 
+            // Update tab buttons
+            authTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Show/hide forms
+            if (tabName === 'login') {
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+                loginError.textContent = '';
+                signupError.textContent = '';
+            } else {
+                signupForm.classList.add('active');
+                loginForm.classList.remove('active');
+                loginError.textContent = '';
+                signupError.textContent = '';
+            }
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  FIREBASE AUTH FUNCTIONS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        async function signUp(email, password, username, displayName, age, location, bio) {
+            try {
+                const userCred = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCred.user;
-                const docRef = db.collection('users').doc(user.uid);
-                const doc = await docRef.get();
-                if (!doc.exists) {
-                    await docRef.set({
-                        email: email,
-                        username: username,
-                        name: displayName || username,
-                        age: parseInt(age) || 22,
-                        location: location || 'Unknown',
-                        bio: bio || 'Just here to meet new people! 😊',
-                        interests: ['Travel', 'Music', 'Food'],
-                        image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
-                        online: true,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    });
-                }
+
+                await db.collection('users').doc(user.uid).set({
+                    email: email,
+                    username: username,
+                    name: displayName || username,
+                    age: parseInt(age) || 22,
+                    location: location || 'Unknown',
+                    bio: bio || 'Just here to meet new people! 😊',
+                    interests: ['Travel', 'Music', 'Food'],
+                    image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
+                    online: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
                 return user;
             } catch (error) {
-                console.error('Auth error:', error);
+                throw error;
+            }
+        }
+
+        async function login(email, password) {
+            try {
+                const userCred = await auth.signInWithEmailAndPassword(email, password);
+                return userCred.user;
+            } catch (error) {
                 throw error;
             }
         }
@@ -2900,28 +2937,19 @@
         //  AUTH HANDLERS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+        // ─── LOGIN ───
         loginBtn.addEventListener('click', async () => {
             const email = loginEmail.value.trim();
             const password = loginPassword.value.trim();
-            const username = loginUsername.value.trim();
-            const displayName = loginDisplayName.value.trim();
-            const age = loginAge.value.trim();
-            const location = loginLocation.value.trim();
-            const bio = loginBio.value.trim();
-
             loginError.textContent = '';
 
             if (!email || !password) {
                 loginError.textContent = 'Please enter email and password.';
                 return;
             }
-            if (!username || !displayName || !age || !location || !bio) {
-                loginError.textContent = 'Please fill all profile fields.';
-                return;
-            }
 
             try {
-                const user = await signUpOrLogin(email, password, username, displayName, age, location, bio);
+                const user = await login(email, password);
                 loginError.textContent = '';
                 await initApp(user);
             } catch (error) {
@@ -2930,19 +2958,63 @@
             }
         });
 
+        // ─── SIGN UP ───
+        signupBtn.addEventListener('click', async () => {
+            const email = signupEmail.value.trim();
+            const password = signupPassword.value.trim();
+            const username = signupUsername.value.trim();
+            const displayName = signupDisplayName.value.trim();
+            const age = signupAge.value.trim();
+            const location = signupLocation.value.trim();
+            const bio = signupBio.value.trim();
+
+            signupError.textContent = '';
+
+            if (!email) { signupError.textContent = 'Please enter email.'; return; }
+            if (!password || password.length < 6) { signupError.textContent = 'Password must be at least 6 characters.';
+                return; }
+            if (!username) { signupError.textContent = 'Please enter a username.'; return; }
+            if (!displayName) { signupError.textContent = 'Please enter your display name.'; return; }
+            if (!age || parseInt(age) < 18) { signupError.textContent = 'Please enter a valid age (18+).'; return; }
+            if (!location) { signupError.textContent = 'Please enter your location.'; return; }
+            if (!bio) { signupError.textContent = 'Please enter a short bio.'; return; }
+
+            // Check if username already taken
+            const existing = allUsers.find(u => u.username === username);
+            if (existing) {
+                signupError.textContent = 'Username already taken. Please choose another.';
+                return;
+            }
+
+            try {
+                const user = await signUp(email, password, username, displayName, age, location, bio);
+                signupError.textContent = '';
+                await initApp(user);
+            } catch (error) {
+                signupError.textContent = error.message;
+                console.error(error);
+            }
+        });
+
+        // ─── DEMO LOGIN ───
         demoLoginBtn.addEventListener('click', async () => {
             const demoEmail = 'demo@flutter.com';
             const demoPassword = 'demopass123';
-            const demoUsername = 'guest_demo';
-            const demoDisplayName = 'Guest User';
             try {
-                const user = await signUpOrLogin(demoEmail, demoPassword, demoUsername, demoDisplayName, 25, 'San Francisco',
-                    'Just exploring! 🌟');
+                const user = await login(demoEmail, demoPassword);
                 loginError.textContent = '';
                 await initApp(user);
             } catch (error) {
-                loginError.textContent = 'Demo login failed: ' + error.message;
-                console.error(error);
+                // Try to create demo account if doesn't exist
+                try {
+                    const user = await signUp(demoEmail, demoPassword, 'guest_demo', 'Guest User', 25, 'San Francisco',
+                        'Just exploring! 🌟');
+                    loginError.textContent = '';
+                    await initApp(user);
+                } catch (e) {
+                    loginError.textContent = 'Demo login failed: ' + e.message;
+                    console.error(e);
+                }
             }
         });
 
@@ -3148,8 +3220,8 @@
             }
         });
 
-        console.log('❤️ Flutter Firebase — Real-time dating app');
-        console.log('🔑 Firebase configured with your project.');
+        console.log('❤️ Flutter Firebase — Login / Sign-Up both options');
+        console.log('🔑 Email/Password Authentication with Firebase');
         console.log('💡 Search for any user by username in the Matches tab.');
     </script>
 </body>
