@@ -1,16 +1,14 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>❤️ Flutter — Dating App</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <style>
         /* ─────────── RESET & BASE ─────────── */
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -38,6 +36,8 @@
             -webkit-font-smoothing: antialiased;
             touch-action: manipulation;
         }
+
+        /* ─────────── APP CONTAINER ─────────── */
         .app {
             width: 100%;
             max-width: 430px;
@@ -60,7 +60,7 @@
             }
         }
 
-        /* ─── LOGIN OVERLAY ─── */
+        /* ─────────── SPLASH / LOGIN ─────────── */
         .login-overlay {
             position: absolute;
             inset: 0;
@@ -74,7 +74,6 @@
             transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             opacity: 1;
             pointer-events: auto;
-            overflow-y: auto;
         }
         .login-overlay.hidden {
             opacity: 0;
@@ -99,53 +98,12 @@
         .login-box .sub {
             color: var(--text-secondary);
             font-size: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
             font-weight: 400;
-        }
-
-        /* ─── TABS ─── */
-        .auth-tabs {
-            display: flex;
-            gap: 4px;
-            background: #f0f0f3;
-            border-radius: var(--radius-sm);
-            padding: 4px;
-            margin-bottom: 20px;
-        }
-        .auth-tabs button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            background: transparent;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-        .auth-tabs button.active {
-            background: #fff;
-            color: var(--primary);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-        .auth-tabs button:hover {
-            color: var(--text);
-        }
-
-        /* ─── FORM FIELDS ─── */
-        .auth-form {
-            display: none;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .auth-form.active {
-            display: flex;
         }
         .login-box .input-group {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-align: left;
         }
         .login-box .input-group label {
@@ -156,9 +114,10 @@
             margin-bottom: 4px;
             margin-left: 4px;
         }
-        .login-box .input-group input {
+        .login-box .input-group input,
+        .login-box .input-group select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             border: 2px solid #e8e8ea;
             border-radius: var(--radius-sm);
             font-size: 15px;
@@ -166,15 +125,17 @@
             background: #fff;
             transition: border 0.25s, box-shadow 0.25s;
             font-family: inherit;
+            color: var(--text);
+            appearance: none;
         }
-        .login-box .input-group input:focus {
+        .login-box .input-group input:focus,
+        .login-box .input-group select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.08);
         }
-
         .login-box .btn-primary {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             border: none;
             border-radius: var(--radius-sm);
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
@@ -194,32 +155,37 @@
         .login-box .btn-primary:active {
             transform: scale(0.97);
         }
-        .login-box .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .login-box .btn-secondary {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 14px;
+            font-family: inherit;
+            transition: opacity 0.2s;
         }
-
+        .login-box .btn-secondary:hover {
+            opacity: 0.7;
+        }
         .login-box .error-msg {
             color: #ff1744;
             font-size: 13px;
-            min-height: 20px;
-            margin: 4px 0;
-            text-align: left;
+            min-height: 22px;
+            margin: 6px 0;
         }
         .login-box .success-msg {
             color: #00c853;
             font-size: 13px;
-            min-height: 20px;
-            margin: 4px 0;
-            text-align: left;
+            min-height: 22px;
+            margin: 6px 0;
         }
-
         .login-box .divider {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin: 14px 0 12px;
+            margin: 18px 0 16px;
             color: #bbb;
             font-size: 13px;
         }
@@ -230,7 +196,6 @@
             height: 1px;
             background: #e8e8ea;
         }
-
         .login-box .demo-hint {
             font-size: 12px;
             color: #aaa;
@@ -244,7 +209,7 @@
             color: var(--text);
         }
 
-        /* ─── MAIN APP ─── (rest of the app, same as before) ─── */
+        /* ─────────── MAIN APP SHELL ─────────── */
         .app-main {
             display: flex;
             flex-direction: column;
@@ -257,6 +222,8 @@
             opacity: 1;
             pointer-events: auto;
         }
+
+        /* ─────────── HEADER ─────────── */
         .header {
             padding: 14px 20px 6px;
             display: flex;
@@ -274,9 +241,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .header .logo span {
+            color: var(--text);
+            -webkit-text-fill-color: var(--text);
+        }
         .header-actions {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
         .header-actions button {
@@ -316,6 +287,8 @@
             justify-content: center;
             padding: 0 4px;
         }
+
+        /* ─────────── MAIN CONTENT ─────────── */
         .main-content {
             flex: 1;
             position: relative;
@@ -324,6 +297,8 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* ─── VIEWS ─── */
         .view {
             position: absolute;
             inset: 0;
@@ -346,7 +321,7 @@
             width: 0;
         }
 
-        /* Stories */
+        /* ─── STORIES ROW ─── */
         .stories-wrapper {
             flex-shrink: 0;
             padding: 6px 0 10px;
@@ -410,6 +385,9 @@
             color: #999;
             background: #f5f5f7;
         }
+        .story-circle .avatar-wrap.viewed {
+            background: #ccc;
+        }
         .story-circle .name {
             font-size: 11px;
             color: var(--text-secondary);
@@ -423,7 +401,7 @@
             color: var(--primary);
         }
 
-        /* Ads */
+        /* ─── AD BANNER ─── */
         .ad-banner {
             flex-shrink: 0;
             background: linear-gradient(135deg, #f0ecf7, #e8e4f0);
@@ -437,6 +415,10 @@
             border: 1px solid rgba(255, 56, 92, 0.08);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .ad-banner:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
         .ad-banner .ad-icon {
             font-size: 28px;
@@ -475,7 +457,7 @@
             font-weight: 600;
         }
 
-        /* Card Stack */
+        /* ─── CARD STACK ─── */
         .card-stack-wrap {
             flex: 1;
             position: relative;
@@ -501,7 +483,8 @@
             background: var(--card-bg);
             box-shadow: var(--shadow);
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.4s ease;
             will-change: transform;
             cursor: grab;
             touch-action: none;
@@ -639,6 +622,7 @@
             }
         }
 
+        /* ─── ACTION BUTTONS ─── */
         .actions {
             display: flex;
             justify-content: center;
@@ -707,6 +691,7 @@
             color: #fff;
         }
 
+        /* ─── EMPTY STATE ─── */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -744,8 +729,11 @@
             font-family: inherit;
             transition: transform 0.2s;
         }
+        .empty-state button:hover {
+            transform: scale(1.03);
+        }
 
-        /* Matches View */
+        /* ─── MATCHES VIEW ─── */
         .matches-view .section-title {
             font-size: 22px;
             font-weight: 700;
@@ -762,48 +750,6 @@
             padding: 0 10px;
             border-radius: 20px;
             font-weight: 600;
-        }
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border-radius: var(--radius-sm);
-            padding: 4px 12px 4px 16px;
-            margin-bottom: 12px;
-            border: 2px solid #e8e8ea;
-            transition: border-color 0.2s;
-        }
-        .search-box:focus-within {
-            border-color: var(--primary);
-        }
-        .search-box .icon {
-            font-size: 18px;
-            color: var(--text-secondary);
-        }
-        .search-box input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 10px 0;
-            font-size: 15px;
-            background: transparent;
-            font-family: inherit;
-        }
-        .search-box input::placeholder {
-            color: #bbb;
-        }
-        .search-box .clear-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            padding: 4px;
-            display: none;
-        }
-        .search-box .clear-btn.visible {
-            display: block;
         }
         .match-item {
             display: flex;
@@ -868,6 +814,13 @@
         .match-item .chat-btn:hover {
             transform: scale(1.04);
         }
+        .match-item .unread-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
         .no-matches {
             text-align: center;
             padding: 40px 20px;
@@ -877,13 +830,77 @@
             font-size: 48px;
             margin-bottom: 12px;
         }
-        .search-results {
-            margin-top: 4px;
+
+        /* ─── LIKES YOU SECTION ─── */
+        .likes-you-section {
+            margin: 4px 0 10px;
         }
-        .search-results .match-item {
-            background: #fafafa;
-            border: 1px solid #e8e8ea;
+        .likes-you-section .sub-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            padding: 6px 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .likes-you-section .sub-title .count {
+            background: var(--primary-light);
+            color: #fff;
+            font-size: 12px;
+            padding: 0 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .likes-you-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            margin-bottom: 6px;
+            border: 1px solid #f0f0f2;
+            transition: transform 0.2s;
+        }
+        .likes-you-item:hover {
+            transform: translateX(4px);
+        }
+        .likes-you-item img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-light);
+        }
+        .likes-you-item .info {
+            flex: 1;
+        }
+        .likes-you-item .info h4 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .likes-you-item .info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .likes-you-item .like-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.2s;
+        }
+        .likes-you-item .like-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ─── AD IN MATCHES ─── */
         .ad-match {
             background: linear-gradient(135deg, #fff5f7, #fef0f2);
             border-radius: var(--radius-sm);
@@ -917,7 +934,7 @@
             font-family: inherit;
         }
 
-        /* Chat View */
+        /* ─── CHAT VIEW ─── */
         .chat-view {
             display: flex;
             flex-direction: column;
@@ -1019,6 +1036,39 @@
         .chat-messages .msg.received .time {
             color: var(--text-secondary);
         }
+        .chat-messages .typing-indicator {
+            align-self: flex-start;
+            background: #f0f0f3;
+            padding: 10px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .chat-messages .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: typingBounce 1.4s infinite;
+        }
+        .chat-messages .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .chat-messages .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typingBounce {
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-6px);
+            }
+        }
         @keyframes msgIn {
             from {
                 opacity: 0;
@@ -1096,7 +1146,7 @@
             font-size: 12px;
         }
 
-        /* Profile View */
+        /* ─── PROFILE VIEW ─── */
         .profile-view {
             padding: 4px 0 8px;
         }
@@ -1185,7 +1235,7 @@
             color: var(--text-secondary);
         }
 
-        /* Match Popup */
+        /* ─── MATCH POPUP ─── */
         .match-popup-overlay {
             position: absolute;
             inset: 0;
@@ -1283,7 +1333,7 @@
             color: var(--text);
         }
 
-        /* Story Viewer */
+        /* ─── STORY VIEWER ─── */
         .story-viewer-overlay {
             position: absolute;
             inset: 0;
@@ -1413,55 +1463,8 @@
             flex: 1;
             cursor: pointer;
         }
-        .story-ad {
-            position: absolute;
-            bottom: 100px;
-            left: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            border-radius: 12px;
-            padding: 10px 16px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 6;
-            font-size: 12px;
-        }
-        .story-ad .ad-cta {
-            background: var(--primary);
-            border: none;
-            padding: 4px 12px;
-            border-radius: 20px;
-            color: #fff;
-            font-weight: 600;
-            font-size: 11px;
-            cursor: pointer;
-        }
 
-        .swipe-ad-toast {
-            position: absolute;
-            bottom: 160px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            color: #fff;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-            z-index: 20;
-            white-space: nowrap;
-        }
-        .swipe-ad-toast.show {
-            opacity: 1;
-        }
-
-        /* Bottom Tab */
+        /* ─── BOTTOM TAB ─── */
         .bottom-tab {
             display: flex;
             justify-content: space-around;
@@ -1523,6 +1526,7 @@
             padding: 0 4px;
         }
 
+        /* ─── CONFETTI ─── */
         .confetti-container {
             position: absolute;
             inset: 0;
@@ -1549,6 +1553,8 @@
                 opacity: 0;
             }
         }
+
+        /* ─── SCROLLBAR ─── */
         ::-webkit-scrollbar {
             width: 3px;
         }
@@ -1559,6 +1565,8 @@
             background: #ddd;
             border-radius: 10px;
         }
+
+        /* ─── RESPONSIVE ─── */
         @media (max-width: 440px) {
             .main-content {
                 padding: 4px 12px 0;
@@ -1608,6 +1616,8 @@
                 max-height: 400px;
             }
         }
+
+        /* ─── TOAST ─── */
         .toast {
             position: absolute;
             bottom: 90px;
@@ -1644,65 +1654,38 @@
                 <div class="logo-big">❤️ Flutter</div>
                 <p class="sub">Find your perfect match</p>
 
-                <!-- Tabs -->
-                <div class="auth-tabs" id="authTabs">
-                    <button class="active" data-tab="login">🔐 Login</button>
-                    <button data-tab="signup">✨ Sign Up</button>
-                </div>
-
-                <!-- ─── LOGIN FORM ─── -->
-                <div class="auth-form active" id="loginForm">
-                    <div class="input-group">
-                        <label>📧 Email</label>
-                        <input type="email" id="loginEmail" placeholder="your@email.com" />
-                    </div>
-                    <div class="input-group">
-                        <label>🔒 Password</label>
-                        <input type="password" id="loginPassword" placeholder="Password" />
-                    </div>
-                    <button class="btn-primary" id="loginBtn">🔐 Login</button>
-                    <div class="error-msg" id="loginError"></div>
-                </div>
-
-                <!-- ─── SIGN UP FORM ─── -->
-                <div class="auth-form" id="signupForm">
-                    <div class="input-group">
-                        <label>📧 Email</label>
-                        <input type="email" id="signupEmail" placeholder="your@email.com" />
-                    </div>
-                    <div class="input-group">
-                        <label>🔒 Password (min 6 chars)</label>
-                        <input type="password" id="signupPassword" placeholder="Password" />
-                    </div>
+                <div id="loginForm">
                     <div class="input-group">
                         <label>👤 Username</label>
-                        <input type="text" id="signupUsername" placeholder="Choose a username" />
+                        <input type="text" id="loginUsername" placeholder="Choose a username" value="alex" />
                     </div>
                     <div class="input-group">
                         <label>📛 Display Name</label>
-                        <input type="text" id="signupDisplayName" placeholder="Your name" />
+                        <input type="text" id="loginDisplayName" placeholder="Your name" value="Alex" />
                     </div>
                     <div class="input-group">
                         <label>🎂 Age (18+)</label>
-                        <input type="number" id="signupAge" placeholder="Your age" />
+                        <input type="number" id="loginAge" placeholder="Your age" value="24" />
                     </div>
                     <div class="input-group">
                         <label>📍 Location</label>
-                        <input type="text" id="signupLocation" placeholder="City, Country" />
+                        <input type="text" id="loginLocation" placeholder="City, Country" value="Mumbai, India" />
                     </div>
                     <div class="input-group">
                         <label>📝 Bio</label>
-                        <input type="text" id="signupBio" placeholder="Tell us about yourself" />
+                        <input type="text" id="loginBio" placeholder="Tell us about yourself" value="Adventurer & coffee lover ☕" />
                     </div>
-                    <button class="btn-primary" id="signupBtn">✨ Create Account</button>
-                    <div class="error-msg" id="signupError"></div>
-                </div>
-
-                <div class="divider">or</div>
-                <button class="btn-secondary" id="demoLoginBtn">🔑 Continue as Guest (Demo)</button>
-                <div class="demo-hint">
-                    💡 <strong>Demo:</strong> Login with <strong>demo@flutter.com</strong> / <strong>demopass123</strong><br />
-                    या अपना नया अकाउंट बनाएँ।
+                    <div class="input-group">
+                        <label>🏷️ Interests (comma separated)</label>
+                        <input type="text" id="loginInterests" placeholder="e.g. Travel, Music, Food" value="Travel, Music, Food" />
+                    </div>
+                    <button class="btn-primary" id="loginBtn">✨ Create Account & Start</button>
+                    <div class="error-msg" id="loginError"></div>
+                    <div class="divider">or</div>
+                    <button class="btn-secondary" id="demoLoginBtn">🔑 Continue as Guest (Demo)</button>
+                    <div class="demo-hint">
+                        💡 <strong>Demo:</strong> Create any account or use guest mode. All data stored locally in your browser.
+                    </div>
                 </div>
             </div>
         </div>
@@ -1710,7 +1693,7 @@
         <!-- ─── MAIN APP ─── -->
         <div class="app-main" id="appMain">
 
-            <!-- HEADER -->
+            <!-- ─── HEADER ─── -->
             <header class="header">
                 <div class="logo">❤️ Flutter</div>
                 <div class="header-actions">
@@ -1719,11 +1702,10 @@
                         🔔
                         <span class="badge" id="notifBadge" style="display:none;">0</span>
                     </button>
-                    <button id="logoutBtn" title="Logout" style="font-size:18px;">🚪</button>
                 </div>
             </header>
 
-            <!-- MAIN CONTENT -->
+            <!-- ─── MAIN CONTENT ─── -->
             <div class="main-content" id="mainContent">
 
                 <!-- SWIPE VIEW -->
@@ -1731,6 +1713,7 @@
                     <div class="stories-wrapper">
                         <div class="stories-row" id="storiesRow"></div>
                     </div>
+                    <!-- Ad Banner -->
                     <div class="ad-banner" id="adBannerSwipe">
                         <span class="ad-icon">💎</span>
                         <span class="ad-text"><strong>Premium</strong> — See who liked you</span>
@@ -1739,30 +1722,31 @@
                     </div>
                     <div class="card-stack-wrap">
                         <div class="card-stack" id="cardStack"></div>
-                        <div class="swipe-ad-toast" id="swipeAdToast">📢 Sponsored: Try Flutter Premium!</div>
                     </div>
                     <div class="actions">
-                        <button class="btn-nope" id="btnNope">✖</button>
-                        <button class="btn-super" id="btnSuper">⭐</button>
-                        <button class="btn-like" id="btnLike">❤</button>
+                        <button class="btn-nope" id="btnNope" aria-label="Pass">✖</button>
+                        <button class="btn-super" id="btnSuper" aria-label="Super Like">⭐</button>
+                        <button class="btn-like" id="btnLike" aria-label="Like">❤</button>
                     </div>
                 </div>
 
                 <!-- MATCHES VIEW -->
                 <div class="view matches-view" id="matchesView">
                     <div class="section-title">💬 Matches <span id="matchCountBadge">0</span></div>
-                    <div class="search-box" id="searchBox">
-                        <span class="icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Search by username..." />
-                        <button class="clear-btn" id="clearSearch">✕</button>
+
+                    <!-- Likes You Section -->
+                    <div class="likes-you-section" id="likesYouSection">
+                        <div class="sub-title">❤️ Liked You <span class="count" id="likesYouCount">0</span></div>
+                        <div id="likesYouList"></div>
                     </div>
+
+                    <!-- Ad in matches -->
                     <div class="ad-match" id="adMatch">
                         <span class="ad-icon">📱</span>
                         <span class="ad-text">Get <strong>Flutter Premium</strong> — unlimited likes &amp; rewinds</span>
                         <button class="ad-cta">Learn More</button>
                     </div>
                     <div id="matchesList"></div>
-                    <div class="search-results" id="searchResults"></div>
                 </div>
 
                 <!-- CHAT VIEW -->
@@ -1778,15 +1762,10 @@
                         </div>
                     </div>
                     <div class="chat-messages" id="chatMessages"></div>
-                    <div class="chat-ad" id="chatAd1">
+                    <div class="chat-ad" id="chatAd">
                         <span class="ad-icon">💬</span>
                         <span>Send GIFs &amp; voice notes with <strong>Flutter+</strong></span>
                         <button class="ad-cta">Try</button>
-                    </div>
-                    <div class="chat-ad" id="chatAd2" style="display:none;">
-                        <span class="ad-icon">🎁</span>
-                        <span>Get 50% off on <strong>Premium</strong> this week!</span>
-                        <button class="ad-cta">Claim</button>
                     </div>
                     <div class="chat-input">
                         <input type="text" id="chatInput" placeholder="Type a message..." />
@@ -1813,7 +1792,7 @@
                     <button class="edit-btn" id="profileEditBtn">✏️ Edit Profile</button>
                 </div>
 
-                <!-- MATCH POPUP -->
+                <!-- ─── MATCH POPUP ─── -->
                 <div class="match-popup-overlay" id="matchPopup">
                     <div class="match-popup">
                         <div class="emoji-big">💞</div>
@@ -1831,7 +1810,7 @@
                     </div>
                 </div>
 
-                <!-- STORY VIEWER -->
+                <!-- ─── STORY VIEWER ─── -->
                 <div class="story-viewer-overlay" id="storyViewer">
                     <button class="story-close" id="storyClose">✕</button>
                     <div class="story-content" id="storyContent">
@@ -1842,10 +1821,6 @@
                         </div>
                         <img id="storyImage" src="" alt="Story" />
                         <div class="story-caption" id="storyCaption">Caption</div>
-                        <div class="story-ad" id="storyAd">
-                            <span>📸 Sponsored: Share your story with Flutter+</span>
-                            <button class="ad-cta">Learn More</button>
-                        </div>
                         <div class="story-touch-area">
                             <div class="half left" id="storyPrev"></div>
                             <div class="half right" id="storyNext"></div>
@@ -1853,11 +1828,15 @@
                     </div>
                 </div>
 
+                <!-- ─── CONFETTI ─── -->
                 <div class="confetti-container" id="confettiContainer"></div>
+
+                <!-- ─── TOAST ─── -->
                 <div class="toast" id="toast"></div>
+
             </div>
 
-            <!-- BOTTOM TAB -->
+            <!-- ─── BOTTOM TAB ─── -->
             <div class="bottom-tab">
                 <button class="active" data-tab="swipe">
                     <span class="icon">🔥</span>
@@ -1879,33 +1858,187 @@
 
     <script>
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  🔥 FIREBASE CONFIG (आपकी दी गई)
+        //  DATA — Built-in users (for demo / matching)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDHXEhYbhjVOenc0CbK09_O3zPZTyeNgN4",
-            authDomain: "fillings-app.firebaseapp.com",
-            projectId: "fillings-app",
-            storageBucket: "fillings-app.firebasestorage.app",
-            messagingSenderId: "161991922479",
-            appId: "1:161991922479:web:494ef906e9de89f64287da",
-            measurementId: "G-2FFV726ZXW"
-        };
+        const BUILTIN_USERS = [{
+            id: 101,
+            name: 'Priya Sharma',
+            age: 24,
+            location: 'Mumbai, India',
+            bio: '🌏 Travel junkie | ☕ Coffee addict | 📸 Capturing moments. Let\'s explore the world together!',
+            interests: ['Travel', 'Photography', 'Coffee'],
+            image: 'https://i.pravatar.cc/400?img=1',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=11', caption: 'Exploring the mountains 🏔️' },
+                { image: 'https://picsum.photos/400/800?random=12', caption: 'Coffee time ☕' },
+            ]
+        }, {
+            id: 102,
+            name: 'Arjun Reddy',
+            age: 27,
+            location: 'Bangalore, India',
+            bio: '🚀 Tech enthusiast & startup founder. Love hiking, gaming, and late-night coding.',
+            interests: ['Tech', 'Hiking', 'Gaming'],
+            image: 'https://i.pravatar.cc/400?img=11',
+            online: false,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=21', caption: 'Coding till dawn 💻' },
+            ]
+        }, {
+            id: 103,
+            name: 'Sneha Patel',
+            age: 23,
+            location: 'Delhi, India',
+            bio: '🎭 Theatre actor & dancer. Living life one performance at a time. 😊',
+            interests: ['Dance', 'Theatre', 'Music'],
+            image: 'https://i.pravatar.cc/400?img=5',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=31', caption: 'Rehearsal mode 🎭' },
+                { image: 'https://picsum.photos/400/800?random=32', caption: 'Dance practice 💃' },
+            ]
+        }, {
+            id: 104,
+            name: 'Vikram Singh',
+            age: 29,
+            location: 'Hyderabad, India',
+            bio: '🏏 Cricket fan | 📚 Bookworm | 🍕 Pizza lover. Looking for my partner in crime.',
+            interests: ['Cricket', 'Reading', 'Food'],
+            image: 'https://i.pravatar.cc/400?img=12',
+            online: false,
+            stories: []
+        }, {
+            id: 105,
+            name: 'Ananya Iyer',
+            age: 25,
+            location: 'Chennai, India',
+            bio: '🎨 Artist & designer. Finding beauty in the little things. Let\'s create together.',
+            interests: ['Art', 'Design', 'Nature'],
+            image: 'https://i.pravatar.cc/400?img=9',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=51', caption: 'Art in progress 🎨' },
+            ]
+        }, {
+            id: 106,
+            name: 'Rohit Mehta',
+            age: 26,
+            location: 'Pune, India',
+            bio: '🏋️ Fitness freak | 🎸 Guitar player | 🌱 Plant dad. Good vibes only!',
+            interests: ['Fitness', 'Music', 'Plants'],
+            image: 'https://i.pravatar.cc/400?img=7',
+            online: false,
+            stories: []
+        }, {
+            id: 107,
+            name: 'Kavya Nair',
+            age: 22,
+            location: 'Kochi, India',
+            bio: '🌊 Beach lover | 📝 Writer | 🧘‍♀️ Yoga. Deep conversations & laughter.',
+            interests: ['Writing', 'Yoga', 'Beach'],
+            image: 'https://i.pravatar.cc/400?img=10',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=71', caption: 'Sunset at the beach 🌅' },
+                { image: 'https://picsum.photos/400/800?random=72', caption: 'Writing my new poem 📝' },
+            ]
+        }, {
+            id: 108,
+            name: 'Amit Kumar',
+            age: 28,
+            location: 'Jaipur, India',
+            bio: '🏛️ History buff | 🍛 Food explorer | 📷 Street photographer. Wander & wonder.',
+            interests: ['History', 'Food', 'Photography'],
+            image: 'https://i.pravatar.cc/400?img=20',
+            online: false,
+            stories: []
+        }, {
+            id: 109,
+            name: 'Riya Das',
+            age: 24,
+            location: 'Kolkata, India',
+            bio: '🎶 Music is my religion | 📖 Poetry | ☕ Chai over everything.',
+            interests: ['Music', 'Poetry', 'Chai'],
+            image: 'https://i.pravatar.cc/400?img=25',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=91', caption: 'Chai time with my guitar 🎸' },
+            ]
+        }, {
+            id: 110,
+            name: 'Dev Patel',
+            age: 26,
+            location: 'Ahmedabad, India',
+            bio: '🚴‍♂️ Cyclist | 💻 Developer | 🎮 Gamer. Balancing screens & pedals.',
+            interests: ['Cycling', 'Coding', 'Gaming'],
+            image: 'https://i.pravatar.cc/400?img=33',
+            online: false,
+            stories: []
+        }, {
+            id: 111,
+            name: 'Maya Krishnan',
+            age: 25,
+            location: 'Coimbatore, India',
+            bio: '🌿 Nature lover | 🧁 Baker | 📸 Nature photographer. Sweetness & serenity.',
+            interests: ['Nature', 'Baking', 'Photography'],
+            image: 'https://i.pravatar.cc/400?img=45',
+            online: true,
+            stories: [
+                { image: 'https://picsum.photos/400/800?random=111', caption: 'Freshly baked cookies 🍪' },
+                { image: 'https://picsum.photos/400/800?random=112', caption: 'Nature walk 🌿' },
+            ]
+        }, {
+            id: 112,
+            name: 'Kabir Singh',
+            age: 27,
+            location: 'Lucknow, India',
+            bio: '🎭 Stand-up comedy | 📝 Writer | 🍜 Foodie. Making the world laugh.',
+            interests: ['Comedy', 'Writing', 'Food'],
+            image: 'https://i.pravatar.cc/400?img=60',
+            online: false,
+            stories: []
+        }];
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  STORAGE HELPERS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        const STORAGE_KEY = 'flutter_app_data_v2';
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (_) { /* ignore */ }
+            return null;
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getDefaultData() {
+            return {
+                users: BUILTIN_USERS.map(u => ({ ...u })),
+                currentUser: null,
+                matches: [], // array of user ids
+                liked: [], // user ids liked by current user
+                passed: [], // user ids passed
+                likedBy: [], // user ids who liked current user (mutual interest)
+                chatMessages: {}, // { userId: [ {text, fromMe, time} ] }
+                storyViews: {}, // { userId: true } for viewed stories
+                profileViews: 0,
+            };
+        }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  STATE
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        let currentUser = null;
-        let currentUserData = null;
-        let matches = [];
-        let chatMessages = {};
-        let allUsers = [];
-        let unsubscribeChat = null;
+        let appData = loadData() || getDefaultData();
+        let currentUser = appData.currentUser ? appData.users.find(u => u.id === appData.currentUser) : null;
         let state = {
             currentIndex: 0,
             isAnimating: false,
@@ -1916,8 +2049,7 @@
             storyUser: null,
             storyIndex: 0,
             storyTimer: null,
-            searchQuery: '',
-            messageCount: 0,
+            isTyping: false,
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1929,42 +2061,22 @@
 
         const loginOverlay = $('#loginOverlay');
         const appMain = $('#appMain');
-
-        // Login
-        const loginEmail = $('#loginEmail');
-        const loginPassword = $('#loginPassword');
+        const loginUsername = $('#loginUsername');
+        const loginDisplayName = $('#loginDisplayName');
+        const loginAge = $('#loginAge');
+        const loginLocation = $('#loginLocation');
+        const loginBio = $('#loginBio');
+        const loginInterests = $('#loginInterests');
         const loginBtn = $('#loginBtn');
+        const demoLoginBtn = $('#demoLoginBtn');
         const loginError = $('#loginError');
 
-        // Signup
-        const signupEmail = $('#signupEmail');
-        const signupPassword = $('#signupPassword');
-        const signupUsername = $('#signupUsername');
-        const signupDisplayName = $('#signupDisplayName');
-        const signupAge = $('#signupAge');
-        const signupLocation = $('#signupLocation');
-        const signupBio = $('#signupBio');
-        const signupBtn = $('#signupBtn');
-        const signupError = $('#signupError');
-
-        const demoLoginBtn = $('#demoLoginBtn');
-        const logoutBtn = $('#logoutBtn');
-
-        // Tabs
-        const authTabs = $('#authTabs');
-        const loginForm = $('#loginForm');
-        const signupForm = $('#signupForm');
-
-        // App elements
         const cardStack = $('#cardStack');
         const swipeView = $('#swipeView');
         const matchesView = $('#matchesView');
         const chatView = $('#chatView');
         const profileView = $('#profileView');
         const matchesList = $('#matchesList');
-        const searchResults = $('#searchResults');
-        const searchInput = $('#searchInput');
-        const clearSearch = $('#clearSearch');
         const matchCountBadge = $('#matchCountBadge');
         const matchPopup = $('#matchPopup');
         const matchName = $('#matchName');
@@ -1981,10 +2093,9 @@
         const resetBtn = $('#resetBtn');
         const notifBtn = $('#notifBtn');
         const toast = $('#toast');
-        const swipeAdToast = $('#swipeAdToast');
         let toastTimer = null;
-        let swipeAdTimer = null;
 
+        // chat
         const chatBack = $('#chatBack');
         const chatAvatar = $('#chatAvatar');
         const chatName = $('#chatName');
@@ -1992,9 +2103,8 @@
         const chatMessagesEl = $('#chatMessages');
         const chatInput = $('#chatInput');
         const chatSend = $('#chatSend');
-        const chatAd1 = $('#chatAd1');
-        const chatAd2 = $('#chatAd2');
 
+        // profile
         const profileCover = $('#profileCover');
         const profileName = $('#profileName');
         const profileAgeLocation = $('#profileAgeLocation');
@@ -2005,6 +2115,7 @@
         const statMatches = $('#statMatches');
         const statViews = $('#statViews');
 
+        // stories
         const storiesRow = $('#storiesRow');
         const storyViewer = $('#storyViewer');
         const storyClose = $('#storyClose');
@@ -2015,10 +2126,15 @@
         const storyCaption = $('#storyCaption');
         const storyPrev = $('#storyPrev');
         const storyNext = $('#storyNext');
-        const storyAd = $('#storyAd');
 
+        // likes you
+        const likesYouList = $('#likesYouList');
+        const likesYouCount = $('#likesYouCount');
+
+        // ads
         const adBannerSwipe = $('#adBannerSwipe');
         const adMatch = $('#adMatch');
+        const chatAd = $('#chatAd');
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  TOAST
@@ -2033,255 +2149,117 @@
             }, duration);
         }
 
-        function showSwipeAd() {
-            swipeAdToast.classList.add('show');
-            if (swipeAdTimer) clearTimeout(swipeAdTimer);
-            swipeAdTimer = setTimeout(() => {
-                swipeAdToast.classList.remove('show');
-            }, 1500);
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  AUTH / LOGIN
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function createUser(username, displayName, age, location, bio, interestsStr) {
+            const id = Date.now() + Math.floor(Math.random() * 1000);
+            const interests = interestsStr ? interestsStr.split(',').map(s => s.trim()).filter(Boolean) : ['Travel', 'Music',
+                'Food'
+            ];
+            const newUser = {
+                id,
+                name: displayName || username,
+                age: parseInt(age) || 22,
+                location: location || 'Unknown',
+                bio: bio || 'Just here to meet new people! 😊',
+                interests: interests.length ? interests : ['Travel', 'Music', 'Food'],
+                image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
+                online: true,
+                stories: [],
+                username: username,
+                createdAt: new Date().toISOString(),
+            };
+            appData.users.push(newUser);
+            appData.currentUser = id;
+            appData.liked = [];
+            appData.passed = [];
+            appData.matches = [];
+            appData.likedBy = [];
+            appData.chatMessages = {};
+            appData.storyViews = {};
+            appData.profileViews = 0;
+            saveData(appData);
+            currentUser = newUser;
+            return newUser;
         }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTH TABS SWITCH
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function loginUser(userId) {
+            const user = appData.users.find(u => u.id === userId);
+            if (!user) return false;
+            appData.currentUser = userId;
+            saveData(appData);
+            currentUser = user;
+            return true;
+        }
 
-        authTabs.addEventListener('click', (e) => {
-            const tab = e.target.closest('button');
-            if (!tab) return;
-            const tabName = tab.dataset.tab;
+        // ─── LOGIN HANDLER ───
+        loginBtn.addEventListener('click', () => {
+            const username = loginUsername.value.trim();
+            const displayName = loginDisplayName.value.trim();
+            const age = loginAge.value.trim();
+            const location = loginLocation.value.trim();
+            const bio = loginBio.value.trim();
+            const interests = loginInterests.value.trim();
 
-            // Update tab buttons
-            authTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-            tab.classList.add('active');
+            loginError.textContent = '';
 
-            // Show/hide forms
-            if (tabName === 'login') {
-                loginForm.classList.add('active');
-                signupForm.classList.remove('active');
+            if (!username) { loginError.textContent = 'Please enter a username.'; return; }
+            if (!displayName) { loginError.textContent = 'Please enter your display name.'; return; }
+            if (!age || isNaN(parseInt(age)) || parseInt(age) < 18) {
+                loginError.textContent = 'Please enter a valid age (18+).';
+                return;
+            }
+            if (!location) { loginError.textContent = 'Please enter your location.'; return; }
+            if (!bio) { loginError.textContent = 'Please enter a short bio.'; return; }
+
+            const existing = appData.users.find(u => u.username === username);
+            if (existing) {
+                if (loginUser(existing.id)) {
+                    loginError.textContent = '';
+                    initApp();
+                } else {
+                    loginError.textContent = 'Could not login. Please try again.';
+                }
+                return;
+            }
+
+            const user = createUser(username, displayName, age, location, bio, interests);
+            loginError.textContent = '';
+            initApp();
+        });
+
+        demoLoginBtn.addEventListener('click', () => {
+            let demoUser = appData.users.find(u => u.username === 'guest_demo');
+            if (!demoUser) {
+                demoUser = createUser('guest_demo', 'Guest User', 25, 'San Francisco, CA',
+                    'Just exploring! 🌟', 'Travel, Music, Food');
+                demoUser.image = `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`;
+                saveData(appData);
+            }
+            if (loginUser(demoUser.id)) {
                 loginError.textContent = '';
-                signupError.textContent = '';
-            } else {
-                signupForm.classList.add('active');
-                loginForm.classList.remove('active');
-                loginError.textContent = '';
-                signupError.textContent = '';
+                initApp();
             }
         });
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  FIREBASE AUTH FUNCTIONS
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        async function signUp(email, password, username, displayName, age, location, bio) {
-            try {
-                const userCred = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCred.user;
-
-                await db.collection('users').doc(user.uid).set({
-                    email: email,
-                    username: username,
-                    name: displayName || username,
-                    age: parseInt(age) || 22,
-                    location: location || 'Unknown',
-                    bio: bio || 'Just here to meet new people! 😊',
-                    interests: ['Travel', 'Music', 'Food'],
-                    image: `https://i.pravatar.cc/400?img=${Math.floor(Math.random() * 70) + 1}`,
-                    online: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
-                return user;
-            } catch (error) {
-                throw error;
-            }
-        }
-
-        async function login(email, password) {
-            try {
-                const userCred = await auth.signInWithEmailAndPassword(email, password);
-                return userCred.user;
-            } catch (error) {
-                throw error;
-            }
-        }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  LOAD DATA
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        async function loadUserData(uid) {
-            const doc = await db.collection('users').doc(uid).get();
-            if (doc.exists) {
-                return { id: uid, ...doc.data() };
-            }
-            return null;
-        }
-
-        async function loadAllUsers() {
-            const snapshot = await db.collection('users').get();
-            allUsers = [];
-            snapshot.forEach(doc => {
-                allUsers.push({ id: doc.id, ...doc.data() });
+        document.querySelectorAll('#loginForm input').forEach(inp => {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') loginBtn.click();
             });
-        }
-
-        async function loadMatches() {
-            if (!currentUser) return;
-            const snapshot = await db.collection('matches')
-                .where('users', 'array-contains', currentUser.uid)
-                .get();
-            const matchIds = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const other = data.users.find(id => id !== currentUser.uid);
-                if (other) matchIds.push(other);
-            });
-            matches = matchIds;
-            updateBadges();
-            renderMatches();
-        }
-
-        async function addMatch(otherUserId) {
-            if (!currentUser || !otherUserId) return;
-            const matchRef = db.collection('matches').doc();
-            await matchRef.set({
-                users: [currentUser.uid, otherUserId],
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-            if (!matches.includes(otherUserId)) {
-                matches.push(otherUserId);
-                updateBadges();
-                renderMatches();
-            }
-        }
+        });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CHAT
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        function listenToChat(otherUserId) {
-            if (unsubscribeChat) {
-                unsubscribeChat();
-                unsubscribeChat = null;
-            }
-            if (!currentUser || !otherUserId) return;
-            const chatId = [currentUser.uid, otherUserId].sort().join('_');
-            const chatRef = db.collection('chats').doc(chatId);
-            const messagesRef = chatRef.collection('messages').orderBy('timestamp', 'asc');
-            unsubscribeChat = messagesRef.onSnapshot((snapshot) => {
-                const msgs = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    msgs.push({
-                        id: doc.id,
-                        text: data.text,
-                        fromMe: data.senderId === currentUser.uid,
-                        time: data.timestamp ? data.timestamp.toDate() : new Date(),
-                    });
-                });
-                chatMessages[otherUserId] = msgs;
-                if (state.selectedChatId === otherUserId) {
-                    const user = allUsers.find(u => u.id === otherUserId);
-                    if (user) renderChat(user);
-                }
-            }, (error) => {
-                console.error('Chat listener error:', error);
-            });
-        }
-
-        async function sendMessage(otherUserId, text) {
-            if (!currentUser || !otherUserId || !text.trim()) return;
-            const chatId = [currentUser.uid, otherUserId].sort().join('_');
-            const chatRef = db.collection('chats').doc(chatId);
-            const messagesRef = chatRef.collection('messages');
-            await chatRef.set({ users: [currentUser.uid, otherUserId] }, { merge: true });
-            await messagesRef.add({
-                text: text.trim(),
-                senderId: currentUser.uid,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-            if (!matches.includes(otherUserId)) {
-                await addMatch(otherUserId);
-            }
-        }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  SWIPE LOGIC
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        async function likeUser(user) {
-            if (state.isAnimating || !currentUser) return;
-            state.isAnimating = true;
-
-            const card = state.currentCardEl;
-            if (card) {
-                const likeInd = card.querySelector('.like-indicator');
-                likeInd.classList.add('show');
-                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
-                card.style.transform = 'translate(120%, -40px) rotate(20deg)';
-                card.style.opacity = '0';
-            }
-
-            await db.collection('likes').add({
-                from: currentUser.uid,
-                to: user.id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-
-            const snapshot = await db.collection('likes')
-                .where('from', '==', user.id)
-                .where('to', '==', currentUser.uid)
-                .get();
-
-            if (!snapshot.empty) {
-                await addMatch(user.id);
-                setTimeout(() => {
-                    showMatchPopup(user);
-                    state.isAnimating = false;
-                }, 450);
-            } else {
-                setTimeout(() => {
-                    state.isAnimating = false;
-                    renderStack();
-                    showSwipeAd();
-                }, 450);
-            }
-        }
-
-        async function passUser(user) {
-            if (state.isAnimating || !currentUser) return;
-            state.isAnimating = true;
-
-            const card = state.currentCardEl;
-            if (card) {
-                const nopeInd = card.querySelector('.nope-indicator');
-                nopeInd.classList.add('show');
-                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
-                card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
-                card.style.opacity = '0';
-            }
-
-            await db.collection('passes').add({
-                from: currentUser.uid,
-                to: user.id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-
-            setTimeout(() => {
-                state.isAnimating = false;
-                renderStack();
-                showSwipeAd();
-            }, 450);
-        }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  RENDER CARDS
+        //  HELPERS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function getAvailableUsers() {
             if (!currentUser) return [];
-            return allUsers.filter(u =>
-                u.id !== currentUser.uid &&
-                !matches.includes(u.id)
+            return appData.users.filter(u =>
+                u.id !== currentUser.id &&
+                !appData.liked.includes(u.id) &&
+                !appData.passed.includes(u.id)
             );
         }
 
@@ -2294,6 +2272,71 @@
             return available[0];
         }
 
+        function getMatchCount() {
+            return appData.matches.length;
+        }
+
+        function getLikedByCount() {
+            return appData.likedBy ? appData.likedBy.length : 0;
+        }
+
+        function updateBadges() {
+            const count = getMatchCount();
+            const likedCount = getLikedByCount();
+            const total = count + likedCount;
+
+            if (total > 0) {
+                notifBadge.textContent = total;
+                notifBadge.style.display = 'flex';
+                matchTabBadge.textContent = count;
+                matchTabBadge.style.display = count > 0 ? 'flex' : 'none';
+                matchCountBadge.textContent = count;
+            } else {
+                notifBadge.style.display = 'none';
+                matchTabBadge.style.display = 'none';
+                matchCountBadge.textContent = '0';
+            }
+
+            likesYouCount.textContent = likedCount;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  INTEREST-BASED MATCHING LOGIC
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function calculateMatchScore(user1, user2) {
+            if (!user1 || !user2) return 0;
+            const interests1 = user1.interests || [];
+            const interests2 = user2.interests || [];
+            const common = interests1.filter(i => interests2.includes(i)).length;
+            const total = new Set([...interests1, ...interests2]).size;
+            const interestScore = total > 0 ? common / total : 0;
+
+            const ageDiff = Math.abs(user1.age - user2.age);
+            const ageScore = Math.max(0, 1 - ageDiff / 20);
+
+            const locationScore = user1.location === user2.location ? 0.2 : 0;
+
+            return Math.min(1, interestScore * 0.6 + ageScore * 0.3 + locationScore * 0.1);
+        }
+
+        function shouldMatch(user) {
+            if (!currentUser) return false;
+            const score = calculateMatchScore(currentUser, user);
+            // Higher score = higher chance of match
+            const threshold = 0.25 + (1 - score) * 0.3;
+            const random = Math.random();
+            const willMatch = random > threshold || score > 0.6;
+            // Also boost for certain users
+            const boostIds = [101, 103, 105, 107, 109, 111];
+            const boosted = boostIds.includes(user.id) && Math.random() < 0.5;
+            return willMatch || boosted;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  RENDER CARDS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
         function renderCard(user) {
             if (!user) return null;
             const card = document.createElement('div');
@@ -2302,13 +2345,13 @@
 
             const img = document.createElement('img');
             img.className = 'card-img';
-            img.src = user.image || 'https://i.pravatar.cc/400?img=1';
+            img.src = user.image;
             img.alt = user.name;
             img.loading = 'lazy';
             img.onerror = () => { img.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect fill="%23e8e8ea" width="400" height="400"/%3E%3Ctext x="200" y="200" font-size="40" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
 
-            if (user.online !== false) {
+            if (user.online) {
                 const badge = document.createElement('div');
                 badge.className = 'online-badge';
                 badge.textContent = 'Online';
@@ -2324,11 +2367,17 @@
 
             const info = document.createElement('div');
             info.className = 'card-info';
+
+            // Show match score as a subtle indicator
+            const score = currentUser ? calculateMatchScore(currentUser, user) : 0;
+            const scorePercent = Math.round(score * 100);
+
             info.innerHTML = `
             <div>
               <div class="name-age">
                 <h3>${user.name}</h3>
                 <span class="age">${user.age}</span>
+                <span style="font-size:11px;color:#00c853;margin-left:auto;background:#e8f5e9;padding:0 8px;border-radius:10px;">${scorePercent}% match</span>
               </div>
               <div class="location">📍 ${user.location}</div>
               <div class="bio">${user.bio}</div>
@@ -2350,8 +2399,8 @@
               <div class="empty-state">
                 <div class="icon">🎉</div>
                 <h3>You've seen everyone!</h3>
-                <p>You have ${matches.length} matches.</p>
-                <button onclick="location.reload()">🔄 Refresh</button>
+                <p>You liked ${appData.liked.length} people and matched with ${appData.matches.length}.</p>
+                <button onclick="resetApp()">🔄 Start Over</button>
               </div>
             `;
                 return;
@@ -2424,9 +2473,9 @@
                 const threshold = 100;
                 if (Math.abs(currentX) > threshold) {
                     if (currentX > 0) {
-                        likeUser(user);
+                        likeUser(user, card);
                     } else {
-                        passUser(user);
+                        passUser(user, card);
                     }
                 } else {
                     card.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease';
@@ -2457,12 +2506,100 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  LIKE / PASS with enhanced logic
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function likeUser(user, cardEl) {
+            if (state.isAnimating || !currentUser) return;
+            state.isAnimating = true;
+
+            const card = cardEl || state.currentCardEl;
+            if (card) {
+                const likeInd = card.querySelector('.like-indicator');
+                likeInd.classList.add('show');
+                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
+                card.style.transform = 'translate(120%, -40px) rotate(20deg)';
+                card.style.opacity = '0';
+            }
+
+            if (!appData.liked.includes(user.id)) {
+                appData.liked.push(user.id);
+            }
+
+            // Check if this user already liked us (mutual interest)
+            const alreadyLikedBy = appData.likedBy ? appData.likedBy.includes(user.id) : false;
+
+            // Check if we should match based on interest score
+            const willMatch = alreadyLikedBy || shouldMatch(user);
+
+            if (willMatch && !appData.matches.includes(user.id)) {
+                appData.matches.push(user.id);
+                // Remove from likedBy if present
+                if (appData.likedBy && appData.likedBy.includes(user.id)) {
+                    appData.likedBy = appData.likedBy.filter(id => id !== user.id);
+                }
+                if (!appData.chatMessages[user.id]) {
+                    appData.chatMessages[user.id] = [
+                        { text: `Hey ${user.name}! It's a match! 😍`, fromMe: true, time: new Date().toISOString() },
+                        { text: `Hi! So glad we matched! How are you?`, fromMe: false, time: new Date().toISOString() },
+                    ];
+                }
+                saveData(appData);
+                updateBadges();
+                setTimeout(() => {
+                    showMatchPopup(user);
+                    state.isAnimating = false;
+                }, 450);
+            } else {
+                // If the user liked us back, add to likedBy
+                if (alreadyLikedBy) {
+                    // already handled above
+                }
+                saveData(appData);
+                updateBadges();
+                setTimeout(() => {
+                    state.isAnimating = false;
+                    renderStack();
+                    const score = Math.round(calculateMatchScore(currentUser, user) * 100);
+                    if (score > 50) {
+                        showToast(`✨ ${score}% match with ${user.name}!`, 1500);
+                    }
+                }, 450);
+            }
+        }
+
+        function passUser(user, cardEl) {
+            if (state.isAnimating || !currentUser) return;
+            state.isAnimating = true;
+
+            const card = cardEl || state.currentCardEl;
+            if (card) {
+                const nopeInd = card.querySelector('.nope-indicator');
+                nopeInd.classList.add('show');
+                card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1), opacity 0.4s ease';
+                card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
+                card.style.opacity = '0';
+            }
+
+            if (!appData.passed.includes(user.id)) {
+                appData.passed.push(user.id);
+            }
+            saveData(appData);
+            updateBadges();
+
+            setTimeout(() => {
+                state.isAnimating = false;
+                renderStack();
+            }, 450);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  MATCH POPUP
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function showMatchPopup(user) {
             matchName.textContent = user.name;
-            matchMyImg.src = currentUserData?.image || 'https://i.pravatar.cc/100?img=70';
+            matchMyImg.src = currentUser.image;
             matchMyImg.onerror = () => { matchMyImg.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect fill="%23e8e8ea" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="30" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             matchOtherImg.src = user.image;
@@ -2471,6 +2608,7 @@
 
             matchPopup.classList.add('show');
             spawnConfetti();
+            showToast(`💞 You matched with ${user.name}!`, 3000);
 
             matchChatBtn.dataset.userId = user.id;
             matchKeepBtn.dataset.userId = user.id;
@@ -2497,99 +2635,118 @@
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  LIKES YOU SECTION
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function renderLikesYou() {
+            if (!currentUser) return;
+            const likedByUsers = (appData.likedBy || [])
+                .map(id => appData.users.find(u => u.id === id))
+                .filter(Boolean);
+
+            if (likedByUsers.length === 0) {
+                likesYouList.innerHTML =
+                    `<div style="padding:8px 4px;color:#bbb;font-size:13px;">No one has liked you yet. Keep swiping! 💪</div>`;
+                return;
+            }
+
+            likesYouList.innerHTML = likedByUsers.map(u => `
+            <div class="likes-you-item" data-userid="${u.id}">
+              <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22 viewBox=%220 0 44 44%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2244%22 height=%2244%22/%3E%3Ctext x=%2222%22 y=%2222%22 font-size=%2220%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
+              <div class="info">
+                <h4>${u.name}</h4>
+                <p>${u.age} · ${u.location.split(',')[0]} · ${(u.interests||[]).slice(0,2).join(', ')}</p>
+              </div>
+              <button class="like-btn" data-userid="${u.id}">❤️ Like Back</button>
+            </div>
+          `).join('');
+
+            likesYouList.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const uid = parseInt(btn.dataset.userid);
+                    const user = appData.users.find(u => u.id === uid);
+                    if (user && !appData.matches.includes(uid)) {
+                        // Like them back
+                        if (!appData.liked.includes(uid)) {
+                            appData.liked.push(uid);
+                        }
+                        appData.matches.push(uid);
+                        if (appData.likedBy) {
+                            appData.likedBy = appData.likedBy.filter(id => id !== uid);
+                        }
+                        if (!appData.chatMessages[uid]) {
+                            appData.chatMessages[uid] = [
+                                { text: `Hey ${user.name}! It's a match! 😍`, fromMe: true, time: new Date()
+                                    .toISOString() },
+                                { text: `Hi! So glad we matched! 🥰`, fromMe: false, time: new Date()
+                                    .toISOString() },
+                            ];
+                        }
+                        saveData(appData);
+                        updateBadges();
+                        renderLikesYou();
+                        renderMatches();
+                        showToast(`💞 You matched with ${user.name}!`);
+                        spawnConfetti();
+                        setTimeout(() => showMatchPopup(user), 600);
+                    } else if (appData.matches.includes(uid)) {
+                        showToast(`💬 You're already matched with ${user.name}!`, 1500);
+                    }
+                });
+            });
+
+            likesYouList.querySelectorAll('.likes-you-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const uid = parseInt(el.dataset.userid);
+                    const user = appData.users.find(u => u.id === uid);
+                    if (user) {
+                        showToast(`👤 ${user.name} · ${user.age} · ${user.location}`, 2000);
+                    }
+                });
+            });
+
+            likesYouCount.textContent = likedByUsers.length;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  MATCHES LIST
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderMatches() {
             if (!currentUser) return;
-            const matchUsers = matches.map(id => allUsers.find(u => u.id === id)).filter(Boolean);
+            const matchUsers = appData.matches.map(id => appData.users.find(u => u.id === id)).filter(Boolean);
 
             if (matchUsers.length === 0) {
                 matchesList.innerHTML = `
               <div class="no-matches">
                 <div class="icon">💔</div>
-                <p>No matches yet. Keep swiping or search for users!</p>
+                <p>No matches yet. Keep swiping!</p>
               </div>
             `;
-            } else {
-                matchesList.innerHTML = matchUsers.map(u => {
-                    const msgs = chatMessages[u.id] || [];
-                    const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text : 'Start chatting!';
-                    const isFromMe = msgs.length > 0 && msgs[msgs.length - 1].fromMe;
-                    const preview = (isFromMe ? 'You: ' : '') + lastMsg;
-                    return `
-                <div class="match-item" data-userid="${u.id}">
-                  <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
-                  <div class="info">
-                    <h4>${u.name}</h4>
-                    <p>${u.age} · ${u.location.split(',')[0]}</p>
-                    <div class="last-msg">${preview}</div>
-                  </div>
-                  <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
-                </div>
-              `;
-                }).join('');
-            }
-
-            matchesList.querySelectorAll('.match-item').forEach(el => {
-                const uid = el.dataset.userid;
-                el.addEventListener('click', () => openChat(uid));
-                const btn = el.querySelector('.chat-btn');
-                if (btn) {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openChat(uid);
-                    });
-                }
-            });
-            updateBadges();
-        }
-
-        function updateBadges() {
-            const count = matches.length;
-            if (count > 0) {
-                notifBadge.textContent = count;
-                notifBadge.style.display = 'flex';
-                matchTabBadge.textContent = count;
-                matchTabBadge.style.display = 'flex';
-                matchCountBadge.textContent = count;
-            } else {
-                notifBadge.style.display = 'none';
-                matchTabBadge.style.display = 'none';
-                matchCountBadge.textContent = '0';
-            }
-        }
-
-        // ─── SEARCH ───
-        function performSearch(query) {
-            state.searchQuery = query.trim().toLowerCase();
-            const results = allUsers.filter(u =>
-                u.id !== currentUser?.uid &&
-                (u.username?.toLowerCase().includes(state.searchQuery) ||
-                    u.name?.toLowerCase().includes(state.searchQuery))
-            );
-            renderSearchResults(results);
-            clearSearch.classList.toggle('visible', state.searchQuery.length > 0);
-        }
-
-        function renderSearchResults(results) {
-            if (results.length === 0 || state.searchQuery === '') {
-                searchResults.innerHTML = '';
                 return;
             }
-            searchResults.innerHTML = results.map(u => `
-            <div class="match-item" data-userid="${u.id}">
-              <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
-              <div class="info">
-                <h4>${u.name}</h4>
-                <p>@${u.username} · ${u.age} · ${u.location.split(',')[0]}</p>
-              </div>
-              <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
-            </div>
-          `).join('');
 
-            searchResults.querySelectorAll('.match-item').forEach(el => {
-                const uid = el.dataset.userid;
+            matchesList.innerHTML = matchUsers.map(u => {
+                const msgs = appData.chatMessages[u.id] || [];
+                const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1].text : 'Start chatting!';
+                const isFromMe = msgs.length > 0 && msgs[msgs.length - 1].fromMe;
+                const preview = (isFromMe ? 'You: ' : '') + lastMsg;
+                return `
+              <div class="match-item" data-userid="${u.id}">
+                <img src="${u.image}" alt="${u.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23e8e8ea%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2228%22 font-size=%2224%22 text-anchor=%22middle%22 dy=%22.35em%22 fill=%22%23999%22%3E📸%3C/text%3E%3C/svg%3E'" />
+                <div class="info">
+                  <h4>${u.name}</h4>
+                  <p>${u.age} · ${u.location.split(',')[0]}</p>
+                  <div class="last-msg">${preview}</div>
+                </div>
+                <button class="chat-btn" data-userid="${u.id}">💬 Chat</button>
+              </div>
+            `;
+            }).join('');
+
+            matchesList.querySelectorAll('.match-item').forEach(el => {
+                const uid = parseInt(el.dataset.userid);
                 el.addEventListener('click', () => openChat(uid));
                 const btn = el.querySelector('.chat-btn');
                 if (btn) {
@@ -2601,73 +2758,115 @@
             });
         }
 
-        searchInput.addEventListener('input', (e) => {
-            performSearch(e.target.value);
-        });
-
-        clearSearch.addEventListener('click', () => {
-            searchInput.value = '';
-            performSearch('');
-            searchInput.focus();
-        });
-
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CHAT OPEN
+        //  CHAT with improved logic
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function openChat(userId) {
-            const user = allUsers.find(u => u.id === userId);
+            const user = appData.users.find(u => u.id === userId);
             if (!user || !currentUser) return;
-            if (!matches.includes(userId)) {
-                addMatch(userId);
-            }
             state.selectedChatId = userId;
-            state.messageCount = 0;
-            if (!chatMessages[userId]) {
-                chatMessages[userId] = [];
+            if (!appData.chatMessages[userId]) {
+                appData.chatMessages[userId] = [
+                    { text: `Hi! Let's chat 😊`, fromMe: false, time: new Date().toISOString() },
+                ];
+                saveData(appData);
             }
-            listenToChat(userId);
             renderChat(user);
             switchView('chat');
         }
 
         function renderChat(user) {
-            chatAvatar.src = user.image || 'https://i.pravatar.cc/40?img=1';
+            chatAvatar.src = user.image;
             chatAvatar.onerror = () => { chatAvatar.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Crect fill="%23e8e8ea" width="40" height="40"/%3E%3Ctext x="20" y="20" font-size="18" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             chatName.textContent = user.name;
-            chatStatus.textContent = user.online !== false ? '🟢 Online' : '⚪ Offline';
-            chatStatus.className = 'status' + (user.online !== false ? ' online' : '');
+            chatStatus.textContent = user.online ? '🟢 Online' : '⚪ Offline';
+            chatStatus.className = 'status' + (user.online ? ' online' : '');
 
-            const msgs = chatMessages[user.id] || [];
+            const msgs = appData.chatMessages[user.id] || [];
             chatMessagesEl.innerHTML = msgs.map(m => `
             <div class="msg ${m.fromMe ? 'sent' : 'received'}">
               ${m.text}
-              <span class="time">${m.time ? new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
+              <span class="time">${formatTime(m.time)}</span>
             </div>
           `).join('');
             chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
             chatInput.value = '';
             chatInput.focus();
-
-            if (msgs.length > 3) {
-                chatAd2.style.display = 'flex';
-            } else {
-                chatAd2.style.display = 'none';
-            }
         }
 
-        async function sendChatMessage() {
+        function formatTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function sendChatMessage() {
             const text = chatInput.value.trim();
             if (!text || state.selectedChatId === null || !currentUser) return;
-            const otherUserId = state.selectedChatId;
-            state.messageCount++;
-            await sendMessage(otherUserId, text);
+            const uid = state.selectedChatId;
+            if (!appData.chatMessages[uid]) appData.chatMessages[uid] = [];
+            appData.chatMessages[uid].push({ text, fromMe: true, time: new Date().toISOString() });
             chatInput.value = '';
-            if (state.messageCount % 3 === 0) {
+            saveData(appData);
+            const user = appData.users.find(u => u.id === uid);
+            if (user) renderChat(user);
+
+            // Auto-reply with contextual logic
+            const targetUser = appData.users.find(u => u.id === uid);
+            if (targetUser && targetUser.online) {
+                const typingEl = document.createElement('div');
+                typingEl.className = 'typing-indicator';
+                typingEl.id = 'typingIndicator';
+                typingEl.innerHTML = '<span></span><span></span><span></span>';
+                chatMessagesEl.appendChild(typingEl);
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
                 setTimeout(() => {
-                    showToast('📢 Ad: Get Flutter Premium now!');
-                }, 300);
+                    const typingInd = document.getElementById('typingIndicator');
+                    if (typingInd) typingInd.remove();
+
+                    // Contextual replies based on keywords
+                    const lower = text.toLowerCase();
+                    let replies = [];
+                    if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
+                        replies = ['Hey there! 😊', 'Hi! How are you?', 'Hello! Nice to hear from you!'];
+                    } else if (lower.includes('how') && lower.includes('you')) {
+                        replies = ['I\'m great, thanks for asking! 😄', 'Doing well! How about you?', 'All good here!'];
+                    } else if (lower.includes('love') || lower.includes('like') || lower.includes('❤')) {
+                        replies = ['I feel the same! 🥰', 'That\'s so sweet!', 'You\'re making me blush 😊'];
+                    } else if (lower.includes('fun') || lower.includes('cool') || lower.includes('awesome')) {
+                        replies = ['Right?! So cool! 😎', 'I know, right!', 'Totally awesome!'];
+                    } else if (lower.includes('work') || lower.includes('job')) {
+                        replies = ['Work is good! How about you?', 'Busy but enjoying it!', 'It\'s going well!'];
+                    } else if (lower.includes('weekend') || lower.includes('plan')) {
+                        replies = ['Weekend plans? Let\'s do something fun!', 'I was thinking the same!', 'Any suggestions?'];
+                    } else if (lower.includes('food') || lower.includes('eat') || lower.includes('hungry')) {
+                        replies = ['I love food too! 🍕', 'Let\'s grab a bite sometime!', 'What\'s your favorite cuisine?'];
+                    } else if (lower.includes('travel') || lower.includes('trip') || lower.includes('vacation')) {
+                        replies = ['I love traveling! ✈️', 'Where should we go next?', 'Travel buddies!'];
+                    } else if (lower.includes('music') || lower.includes('song') || lower.includes('sing')) {
+                        replies = ['I love music! 🎵', 'What\'s your favorite song?', 'Let\'s share playlists!'];
+                    } else {
+                        const generic = [
+                            'That\'s awesome! 😊', 'I totally agree!', 'Tell me more about that.',
+                            'Interesting!', 'Haha, you\'re funny! 😄', 'I was thinking the same!',
+                            'Wow, really?', 'That\'s so cool!', 'I love that!',
+                            'You\'re sweet 🥰', 'Haha okay 😂', 'I see what you mean.',
+                            'Definitely!', 'Oh, I need to try that!', 'You\'re making me smile 😊',
+                            'That\'s great to hear!', 'I feel the same way!', 'Let\'s do that!'
+                        ];
+                        replies = generic;
+                    }
+
+                    const reply = replies[Math.floor(Math.random() * replies.length)];
+                    if (!appData.chatMessages[uid]) appData.chatMessages[uid] = [];
+                    appData.chatMessages[uid].push({ text: reply, fromMe: false, time: new Date().toISOString() });
+                    saveData(appData);
+                    const user2 = appData.users.find(u => u.id === uid);
+                    if (user2) renderChat(user2);
+                }, 1000 + Math.random() * 1200);
             }
         }
 
@@ -2676,14 +2875,15 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderStories() {
-            if (!currentUserData) return;
-            const usersWithStories = allUsers.filter(u =>
-                u.id !== currentUser.uid && u.stories && u.stories.length > 0
+            if (!currentUser) return;
+            const usersWithStories = appData.users.filter(u =>
+                u.id !== currentUser.id && u.stories && u.stories.length > 0
             );
+            const hasMyStory = currentUser.stories && currentUser.stories.length > 0;
 
             let html = '';
             html += `
-            <div class="story-circle" data-userid="${currentUser.uid}" data-add="true">
+            <div class="story-circle" data-userid="${currentUser.id}" data-add="true">
               <div class="avatar-wrap add">
                 <div class="add-icon">+</div>
               </div>
@@ -2692,9 +2892,10 @@
           `;
 
             usersWithStories.forEach(u => {
+                const viewed = appData.storyViews && appData.storyViews[u.id];
                 html += `
               <div class="story-circle" data-userid="${u.id}" data-add="false">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap ${viewed ? 'viewed' : ''}">
                   <img src="${u.image}" alt="${u.name}" />
                 </div>
                 <span class="name">${u.name}</span>
@@ -2706,30 +2907,21 @@
 
             storiesRow.querySelectorAll('.story-circle').forEach(el => {
                 el.addEventListener('click', () => {
-                    const uid = el.dataset.userid;
+                    const uid = parseInt(el.dataset.userid);
                     const add = el.dataset.add === 'true';
                     if (add) {
                         const url = prompt('Enter image URL for your story:', 'https://picsum.photos/400/800?random=' +
                             Math.floor(Math.random() * 1000));
                         if (url) {
-                            const userRef = db.collection('users').doc(currentUser.uid);
-                            userRef.update({
-                                stories: firebase.firestore.FieldValue.arrayUnion({
-                                    image: url,
-                                    caption: 'My story',
-                                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                                })
-                            }).then(() => {
-                                showToast('Story added! 🎉');
-                                loadUserData(currentUser.uid).then(data => {
-                                    currentUserData = data;
-                                    renderStories();
-                                });
-                            });
+                            if (!currentUser.stories) currentUser.stories = [];
+                            currentUser.stories.push({ image: url, caption: 'My story' });
+                            saveData(appData);
+                            renderStories();
+                            showToast('Story added! 🎉');
                         }
                         return;
                     }
-                    const user = allUsers.find(u => u.id === uid);
+                    const user = appData.users.find(u => u.id === uid);
                     if (user && user.stories && user.stories.length > 0) {
                         openStoryViewer(user);
                     }
@@ -2743,13 +2935,12 @@
             storyViewer.classList.add('show');
             renderStorySlide();
             startStoryTimer();
-            storyAd.style.display = 'flex';
         }
 
         function renderStorySlide() {
             const user = state.storyUser;
             const index = state.storyIndex;
-            const stories = user.stories || [];
+            const stories = user.stories;
             if (!stories || index >= stories.length) {
                 closeStoryViewer();
                 return;
@@ -2761,6 +2952,11 @@
             storyCaption.textContent = story.caption || '';
             storyUserAvatar.src = user.image;
             storyUserName.textContent = user.name;
+
+            if (!appData.storyViews) appData.storyViews = {};
+            appData.storyViews[user.id] = true;
+            saveData(appData);
+            renderStories();
 
             storyProgress.innerHTML = '';
             stories.forEach((_, i) => {
@@ -2815,7 +3011,6 @@
             }
             storyProgress.innerHTML = '';
             state.storyUser = null;
-            storyAd.style.display = 'none';
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2836,11 +3031,8 @@
                 matchesView.classList.add('active');
                 document.querySelector('.bottom-tab button[data-tab="matches"]')?.classList.add('active');
                 renderMatches();
-                if (state.searchQuery) {
-                    performSearch(searchInput.value);
-                } else {
-                    searchResults.innerHTML = '';
-                }
+                renderLikesYou();
+                updateBadges();
             } else if (view === 'chat') {
                 chatView.classList.add('active');
             } else if (view === 'profile') {
@@ -2856,9 +3048,9 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         function renderProfile() {
-            if (!currentUserData) return;
-            const me = currentUserData;
-            profileCover.src = me.image || 'https://i.pravatar.cc/400?img=1';
+            if (!currentUser) return;
+            const me = currentUser;
+            profileCover.src = me.image;
             profileCover.onerror = () => { profileCover.src =
                     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="180" viewBox="0 0 400 180"%3E%3Crect fill="%23e8e8ea" width="400" height="180"/%3E%3Ctext x="200" y="90" font-size="40" text-anchor="middle" dy=".35em" fill="%23999"%3E📸%3C/text%3E%3C/svg%3E'; };
             profileName.textContent = me.name;
@@ -2866,159 +3058,64 @@
             profileBio.textContent = me.bio;
             profileInterests.innerHTML = (me.interests || []).map(i => `<span>#${i}</span>`).join('');
 
-            statLikes.textContent = '0';
-            statMatches.textContent = matches.length;
-            statViews.textContent = '0';
+            statLikes.textContent = appData.liked.length;
+            statMatches.textContent = appData.matches.length;
+            statViews.textContent = appData.profileViews || 0;
+
+            if (!appData.profileViews) appData.profileViews = 0;
+            appData.profileViews++;
+            saveData(appData);
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  LOGOUT & RESET
+        //  RESET
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        function logout() {
-            if (unsubscribeChat) {
-                unsubscribeChat();
-                unsubscribeChat = null;
-            }
-            auth.signOut().then(() => {
-                location.reload();
-            });
-        }
 
         function resetApp() {
-            if (confirm('Reset local state? (This will not delete Firebase data)')) {
+            if (!confirm('Reset all data? This will clear your matches, likes, and messages.')) return;
+            if (currentUser) {
+                appData.liked = [];
+                appData.passed = [];
+                appData.matches = [];
+                appData.likedBy = [];
+                appData.chatMessages = {};
+                appData.storyViews = {};
+                appData.profileViews = 0;
+                saveData(appData);
                 state.currentIndex = 0;
                 state.isAnimating = false;
-                matches = [];
-                chatMessages = {};
-                if (unsubscribeChat) {
-                    unsubscribeChat();
-                    unsubscribeChat = null;
-                }
+                matchPopup.classList.remove('show');
+                confettiContainer.innerHTML = '';
+                closeStoryViewer();
                 updateBadges();
+                if (state.currentView === 'swipe') {
+                    renderStack();
+                    renderStories();
+                } else {
+                    switchView('swipe');
+                }
                 renderMatches();
-                renderStack();
-                showToast('Local state reset!');
+                renderLikesYou();
+                showToast('Data reset! 🔄');
             }
         }
+        window.resetApp = resetApp;
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  INIT APP
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        async function initApp(user) {
-            try {
-                const userData = await loadUserData(user.uid);
-                if (!userData) {
-                    showToast('User profile not found. Please create one.');
-                    return;
-                }
-                currentUser = user;
-                currentUserData = userData;
-
-                await loadAllUsers();
-                await loadMatches();
-
-                appMain.classList.add('visible');
-                loginOverlay.classList.add('hidden');
-                renderProfile();
-                renderStories();
-                renderStack();
-                switchView('swipe');
-                showToast(`Welcome ${userData.name}!`);
-                console.log('✅ Logged in as', userData.name);
-            } catch (error) {
-                console.error('Init error:', error);
-                showToast('Error loading data. Please refresh.');
-            }
+        function initApp() {
+            appMain.classList.add('visible');
+            loginOverlay.classList.add('hidden');
+            renderStack();
+            renderMatches();
+            renderLikesYou();
+            updateBadges();
+            renderStories();
+            switchView('swipe');
+            console.log('❤️ Flutter — Logged in as', currentUser?.name);
         }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTH HANDLERS
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        // ─── LOGIN ───
-        loginBtn.addEventListener('click', async () => {
-            const email = loginEmail.value.trim();
-            const password = loginPassword.value.trim();
-            loginError.textContent = '';
-
-            if (!email || !password) {
-                loginError.textContent = 'Please enter email and password.';
-                return;
-            }
-
-            try {
-                const user = await login(email, password);
-                loginError.textContent = '';
-                await initApp(user);
-            } catch (error) {
-                loginError.textContent = error.message;
-                console.error(error);
-            }
-        });
-
-        // ─── SIGN UP ───
-        signupBtn.addEventListener('click', async () => {
-            const email = signupEmail.value.trim();
-            const password = signupPassword.value.trim();
-            const username = signupUsername.value.trim();
-            const displayName = signupDisplayName.value.trim();
-            const age = signupAge.value.trim();
-            const location = signupLocation.value.trim();
-            const bio = signupBio.value.trim();
-
-            signupError.textContent = '';
-
-            if (!email) { signupError.textContent = 'Please enter email.'; return; }
-            if (!password || password.length < 6) { signupError.textContent = 'Password must be at least 6 characters.';
-                return; }
-            if (!username) { signupError.textContent = 'Please enter a username.'; return; }
-            if (!displayName) { signupError.textContent = 'Please enter your display name.'; return; }
-            if (!age || parseInt(age) < 18) { signupError.textContent = 'Please enter a valid age (18+).'; return; }
-            if (!location) { signupError.textContent = 'Please enter your location.'; return; }
-            if (!bio) { signupError.textContent = 'Please enter a short bio.'; return; }
-
-            // Check if username already taken
-            const existing = allUsers.find(u => u.username === username);
-            if (existing) {
-                signupError.textContent = 'Username already taken. Please choose another.';
-                return;
-            }
-
-            try {
-                const user = await signUp(email, password, username, displayName, age, location, bio);
-                signupError.textContent = '';
-                await initApp(user);
-            } catch (error) {
-                signupError.textContent = error.message;
-                console.error(error);
-            }
-        });
-
-        // ─── DEMO LOGIN ───
-        demoLoginBtn.addEventListener('click', async () => {
-            const demoEmail = 'demo@flutter.com';
-            const demoPassword = 'demopass123';
-            try {
-                const user = await login(demoEmail, demoPassword);
-                loginError.textContent = '';
-                await initApp(user);
-            } catch (error) {
-                // Try to create demo account if doesn't exist
-                try {
-                    const user = await signUp(demoEmail, demoPassword, 'guest_demo', 'Guest User', 25, 'San Francisco',
-                        'Just exploring! 🌟');
-                    loginError.textContent = '';
-                    await initApp(user);
-                } catch (e) {
-                    loginError.textContent = 'Demo login failed: ' + e.message;
-                    console.error(e);
-                }
-            }
-        });
-
-        logoutBtn.addEventListener('click', logout);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  EVENT BINDING
@@ -3036,7 +3133,7 @@
                 card.style.transform = 'translate(120%, -40px) rotate(20deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(() => likeUser(user), 100);
+            setTimeout(() => likeUser(user, card), 100);
         });
 
         btnNope.addEventListener('click', () => {
@@ -3051,10 +3148,10 @@
                 card.style.transform = 'translate(-120%, -40px) rotate(-20deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(() => passUser(user), 100);
+            setTimeout(() => passUser(user, card), 100);
         });
 
-        btnSuper.addEventListener('click', async () => {
+        btnSuper.addEventListener('click', () => {
             if (state.isAnimating || !currentUser) return;
             const user = getNextUser();
             if (!user) return;
@@ -3069,22 +3166,38 @@
                 card.style.transform = 'translate(0, -80px) scale(1.05) rotate(0deg)';
                 card.style.opacity = '0';
             }
-            setTimeout(async () => {
-                await addMatch(user.id);
-                await db.collection('likes').add({
-                    from: currentUser.uid,
-                    to: user.id,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                });
-                setTimeout(() => {
-                    showMatchPopup(user);
+            setTimeout(() => {
+                if (!appData.liked.includes(user.id)) appData.liked.push(user.id);
+                // Super like = guaranteed match if user is online or has high score
+                const score = calculateMatchScore(currentUser, user);
+                if (score > 0.2 && !appData.matches.includes(user.id)) {
+                    appData.matches.push(user.id);
+                    if (appData.likedBy && appData.likedBy.includes(user.id)) {
+                        appData.likedBy = appData.likedBy.filter(id => id !== user.id);
+                    }
+                    if (!appData.chatMessages[user.id]) {
+                        appData.chatMessages[user.id] = [
+                            { text: `🌟 Super liked you!`, fromMe: true, time: new Date().toISOString() },
+                            { text: `Oh wow! I'm flattered! 🥰`, fromMe: false, time: new Date().toISOString() },
+                        ];
+                    }
+                    saveData(appData);
+                    updateBadges();
+                    setTimeout(() => {
+                        showMatchPopup(user);
+                        state.isAnimating = false;
+                    }, 450);
+                } else {
+                    saveData(appData);
+                    updateBadges();
                     state.isAnimating = false;
-                }, 450);
+                    renderStack();
+                    showToast(`⭐ Super liked ${user.name}!`, 1200);
+                }
                 state.isAnimating = true;
                 setTimeout(() => {
                     state.isAnimating = false;
                     renderStack();
-                    showSwipeAd();
                 }, 600);
             }, 100);
         });
@@ -3092,7 +3205,8 @@
         resetBtn.addEventListener('click', resetApp);
 
         notifBtn.addEventListener('click', () => {
-            if (matches.length > 0) {
+            const total = getMatchCount() + getLikedByCount();
+            if (total > 0) {
                 switchView('matches');
             } else {
                 showToast('No notifications yet. Keep swiping! 💕');
@@ -3115,19 +3229,16 @@
         });
 
         matchChatBtn.addEventListener('click', () => {
-            const uid = matchChatBtn.dataset.userId;
+            const uid = parseInt(matchChatBtn.dataset.userId);
             matchPopup.classList.remove('show');
             confettiContainer.innerHTML = '';
             openChat(uid);
         });
 
         chatBack.addEventListener('click', () => {
-            if (unsubscribeChat) {
-                unsubscribeChat();
-                unsubscribeChat = null;
-            }
             switchView('matches');
             renderMatches();
+            renderLikesYou();
         });
 
         chatSend.addEventListener('click', sendChatMessage);
@@ -3136,14 +3247,27 @@
         });
 
         profileEditBtn.addEventListener('click', () => {
-            const newName = prompt('Display name:', currentUserData?.name || '');
-            if (newName && currentUserData) {
-                const userRef = db.collection('users').doc(currentUser.uid);
-                userRef.update({ name: newName }).then(() => {
-                    currentUserData.name = newName;
-                    renderProfile();
-                    showToast('Profile updated! ✅');
-                });
+            if (!currentUser) return;
+            const newName = prompt('Display name:', currentUser.name || '');
+            if (newName) {
+                currentUser.name = newName;
+                saveData(appData);
+                renderProfile();
+                showToast('Profile updated! ✅');
+            }
+            const newBio = prompt('Bio:', currentUser.bio || '');
+            if (newBio) {
+                currentUser.bio = newBio;
+                saveData(appData);
+                renderProfile();
+                showToast('Bio updated! ✅');
+            }
+            const newInterests = prompt('Interests (comma separated):', (currentUser.interests || []).join(', '));
+            if (newInterests) {
+                currentUser.interests = newInterests.split(',').map(s => s.trim()).filter(Boolean);
+                saveData(appData);
+                renderProfile();
+                showToast('Interests updated! ✅');
             }
         });
 
@@ -3151,14 +3275,13 @@
         storyNext.addEventListener('click', nextStory);
         storyPrev.addEventListener('click', prevStory);
 
-        document.querySelectorAll('.ad-cta, .ad-banner, .ad-match, .chat-ad .ad-cta, .story-ad .ad-cta').forEach(el => {
+        document.querySelectorAll('.ad-cta, .ad-banner, .ad-match, .chat-ad .ad-cta').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showToast('✨ Premium feature — coming soon!');
             });
         });
         adBannerSwipe.addEventListener('click', () => showToast('💎 Upgrade to Premium to see who liked you!'));
-        storyAd.addEventListener('click', () => showToast('📸 Share your story with Flutter+!'));
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         //  KEYBOARD SHORTCUTS
@@ -3190,39 +3313,29 @@
                 confettiContainer.innerHTML = '';
                 closeStoryViewer();
             }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                e.preventDefault();
-                if (state.currentView !== 'matches') switchView('matches');
-                setTimeout(() => searchInput.focus(), 100);
-            }
         });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  AUTH STATE OBSERVER
+        //  AUTO-LOGIN
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        auth.onAuthStateChanged(async (user) => {
+        if (appData.currentUser) {
+            const user = appData.users.find(u => u.id === appData.currentUser);
             if (user) {
-                if (!currentUser) {
-                    await initApp(user);
-                }
+                currentUser = user;
+                loginUser(user.id);
+                initApp();
             } else {
-                loginOverlay.classList.remove('hidden');
-                appMain.classList.remove('visible');
-                currentUser = null;
-                currentUserData = null;
-                matches = [];
-                allUsers = [];
-                if (unsubscribeChat) {
-                    unsubscribeChat();
-                    unsubscribeChat = null;
-                }
+                appData.currentUser = null;
+                saveData(appData);
             }
-        });
+        }
 
-        console.log('❤️ Flutter Firebase — Login / Sign-Up both options');
-        console.log('🔑 Email/Password Authentication with Firebase');
-        console.log('💡 Search for any user by username in the Matches tab.');
+        console.log('❤️ Flutter Dating App v3.0 — Enhanced Logical Flow');
+        console.log('📦 Data stored in localStorage');
+        console.log('⌨️ Shortcuts: ←/p=pass, →/l=like, ↑/s=super, r=reset, m=matches, 1=swipe, 3=profile');
+        console.log('👤 Current user:', currentUser?.name || 'Not logged in');
+        console.log('💡 New features: Interest-based matching, Likes You section, contextual chat replies');
     </script>
 </body>
 </html>
